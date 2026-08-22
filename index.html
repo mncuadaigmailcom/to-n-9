@@ -1670,8 +1670,8 @@
                     <option value="top">⬆️ Trên cùng</option>
                     <option value="bottom">⬇️ Dưới cùng</option>
                     <option value="popup">📺 Giữa màn hình</option>
-                    <option value="video-skippable">🔒 Video 5s - BẮT BUỘC xem hết mới vào web</option>
-                    <option value="video-non-skippable">🎬 Video 60s - Bỏ qua được sau 15s</option>
+                    <option value="video-forced">🔒 Video 5s - BẮT BUỘC xem hết mới vào web</option>
+                    <option value="video-skippable">🎬 Video 60s - Bỏ qua được sau 15s</option>
                 </select>
             </div>
             <div class="setting-item" id="ads-size-container">
@@ -2129,14 +2129,7 @@
             try {
                 const page = (item.data.p1 && item.data.p1.html) ? 'p1' : 'p2';
                 const d = item.data[page] || {};
-                const html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${(item.name || 'Ban luu').replace(/</g, '')}</title>\n<style>\n${d.css || ''}\n</style>\n</head>\n<body>\n${d.html || ''}\n<script>\n${d.js || ''}\n<\/script>\n
-<script>
-
-
-<\/script>
-
-
-</body>\n</html>`;
+                const html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${escapeHtml(item.name || 'Ban luu')}</title>\n<style>\n${d.css || ''}\n</style>\n</head>\n<body>\n${d.html || ''}\n<script>\n${String(d.js || '').replace(/<\/script/gi, '<\\/script')}\n<\/script>\n</body>\n</html>`;
                 const safeFile = (item.name || 'ban-luu').replace(/[^a-zA-Z0-9\-_ ]/g, '').trim().replace(/\s+/g, '-') || 'ban-luu';
                 downloadBlob(html, safeFile + '.html', 'text/html');
                 showAutoPasteToast(`⬇️ Đã tải bản lưu "${item.name}" về máy!`);
@@ -3447,13 +3440,24 @@ Yêu cầu bắt buộc:
                     webUrlLog(`✅ AI đã sinh mã nguồn thành công! Đang bóc tách và nạp vào Editor...`);
 
                     const text = res.text;
-                    const htmlMatch = text.match(/```(?:html)?\s*([\s\S]*?)```/i);
-                    const cssMatch = text.match(/```(?:css)?\s*([\s\S]*?)```/i);
-                    const jsMatch = text.match(/```(?:javascript|js)?\s*([\s\S]*?)```/i);
+                    const codeBlocks = {};
+                    const fenceRe = /```([a-zA-Z0-9+#-]*)[ \t]*\r?\n?([\s\S]*?)```/gi;
+                    let fm;
+                    while ((fm = fenceRe.exec(text)) !== null) {
+                        const lang = (fm[1] || '').toLowerCase();
+                        if (!codeBlocks[lang]) codeBlocks[lang] = fm[2].trim();
+                    }
+                    const pickBlock = (langs, fallbackEmpty) => {
+                        for (const l of langs) { if (codeBlocks[l]) return codeBlocks[l]; }
+                        return (fallbackEmpty && codeBlocks['']) ? codeBlocks[''] : null;
+                    };
+                    const htmlMatch = pickBlock(['html', 'htm', 'xml'], true);
+                    const cssMatch = pickBlock(['css'], false);
+                    const jsMatch = pickBlock(['javascript', 'js'], false);
 
-                    if (htmlMatch) setCode(targetPage, 'html', htmlMatch[1].trim());
-                    if (cssMatch) setCode(targetPage, 'css', cssMatch[1].trim());
-                    if (jsMatch) setCode(targetPage, 'js', jsMatch[1].trim());
+                    if (htmlMatch) setCode(targetPage, 'html', htmlMatch);
+                    if (cssMatch) setCode(targetPage, 'css', cssMatch);
+                    if (jsMatch) setCode(targetPage, 'js', jsMatch);
 
                     if (targetPage !== activeEditPage) switchActivePage(targetPage);
                     showEditor('html');
@@ -3763,6 +3767,16 @@ Yêu cầu bắt buộc:
             }, 9000);
         }
 
+        function aiWebSetPresetSelect(url) {
+            const sel = document.getElementById('ai-web-preset');
+            if (!sel) return;
+            let found = false;
+            for (let i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].value === url) { sel.value = url; found = true; break; }
+            }
+            if (!found) sel.value = '';
+        }
+
         function aiWebLoadUrl() {
             const frame = document.getElementById('ai-web-frame');
             if (!frame) return;
@@ -3770,9 +3784,7 @@ Yêu cầu bắt buộc:
             const input = document.getElementById('ai-web-url');
             if (input) input.value = url;
             aiWebRememberLastUrl(url);
-            const sel = document.getElementById('ai-web-preset');
-            if (sel && sel.querySelector('option[value="' + url.replace(/"/g, '') + '"]')) sel.value = url;
-            else if (sel) sel.value = '';
+            aiWebSetPresetSelect(url);
             aiWebLoadedOnce = false;
             frame.src = url;
             aiWebStartLoadWatch();
@@ -3828,8 +3840,7 @@ Yêu cầu bắt buộc:
                     frame.src = lastUrl;
                     const input = document.getElementById('ai-web-url');
                     if (input) input.value = lastUrl;
-                    const sel = document.getElementById('ai-web-preset');
-                    if (sel && sel.querySelector('option[value="' + lastUrl.replace(/"/g, '') + '"]')) sel.value = lastUrl;
+                    aiWebSetPresetSelect(lastUrl);
                 }
                 aiWebStartLoadWatch();
             } else {
@@ -5792,7 +5803,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 let source = buildFullSource(page);
                 const pwaHead = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#00b0ff">\n${headExtras}<link rel="icon" href="./icons/icon-192.png">\n<title>${appName.replace(/"/g, '&quot;')}</title>`;
                 source = source.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + pwaHead);
-                const swRegisterScript = `<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW lỗi:', err)); }); }<\\/script>`;
+                const swRegisterScript = `<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW lỗi:', err)); }); }<\/script>`;
                 source = source.replace('</body>', swRegisterScript + '\n</body>');
 
                 zip.file('index.html', source);
@@ -5956,7 +5967,14 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
 
         function toggleSettingsModal(show) { const modal = document.getElementById('settings-modal'); if (show) { modal.classList.add('active'); const isBanner = ['top', 'bottom', 'popup'].includes(adsLocation); document.getElementById('ads-size-container').style.display = isBanner ? 'flex' : 'none'; } else { modal.classList.remove('active'); } }
         function toggleBotModal(show) { const modal = document.getElementById('bot-modal'); if (show) { modal.classList.add('active'); const savedToken = localStorage.getItem('codespace_github_token'); if(savedToken) document.getElementById('github-token').value = savedToken; const linkBox = document.getElementById('bot-link-box'); if (linkBox) linkBox.style.display = 'none'; } else { modal.classList.remove('active'); } }
-        function onAdsLocationChange(select) { adsLocation = select.value; safeSetLocalStorage('codespace_ads_location', adsLocation); const isBanner = ['top', 'bottom', 'popup'].includes(adsLocation); document.getElementById('ads-size-container').style.display = isBanner ? 'flex' : 'none'; runCode(); }
+        function onAdsLocationChange(select) {
+            adsLocation = select.value;
+            safeSetLocalStorage('codespace_ads_location', adsLocation);
+            const isBanner = ['top', 'bottom', 'popup'].includes(adsLocation);
+            document.getElementById('ads-size-container').style.display = isBanner ? 'flex' : 'none';
+            if (adsLocation === 'video-forced' || adsLocation === 'video-skippable') { setMode('full-view'); }
+            runCode();
+        }
         function onAdsSizeChange(select) { adsSize = select.value; safeSetLocalStorage('codespace_ads_size', adsSize); runCode(); }
 
         function botLog(msg) {
@@ -6353,15 +6371,15 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             if (adsLocation === 'popup') { adsStyle += ` .fake-ad { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid #00b0ff; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.3); } `; }
             let adsHTML = ''; let adsJS = '';
             if (['top', 'bottom', 'popup'].includes(adsLocation)) { adsHTML = `<div class="fake-ad"><span class="fake-ad-tag">Ads</span><span class="fake-ad-title">🔥 HỌC CODE PRO 2026</span><button class="fake-ad-close" onclick="this.parentElement.remove()">✕</button></div>`; }
-            if (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable') {
-                // 🔒 video-skippable  : 5 giây, KHÔNG được bỏ qua, phải xem hết mới vào web
-                // 🎬 video-non-skippable: 60 giây, xem đủ 15 giây là được bỏ qua
-                const totalTime = (adsLocation === 'video-skippable') ? 5 : 60;
-                const skipAfter = (adsLocation === 'video-skippable') ? 5 : 15;
-                const adTitle = (adsLocation === 'video-skippable')
+            if (adsLocation === 'video-forced' || adsLocation === 'video-skippable') {
+                // 🔒 video-forced  : 5 giây, KHÔNG được bỏ qua, phải xem hết mới vào web
+                // 🎬 video-skippable: 60 giây, xem đủ 15 giây là được bỏ qua
+                const totalTime = (adsLocation === 'video-forced') ? 5 : 60;
+                const skipAfter = (adsLocation === 'video-forced') ? 5 : 15;
+                const adTitle = (adsLocation === 'video-forced')
                     ? `📺 Quảng Cáo Bắt Buộc ${totalTime}s`
                     : `📺 Video Quảng Cáo ${totalTime}s`;
-                const adBadge = (adsLocation === 'video-skippable')
+                const adBadge = (adsLocation === 'video-forced')
                     ? 'KHÔNG THỂ BỎ QUA'
                     : `CÓ THỂ BỎ QUA SAU ${skipAfter}s`;
 
@@ -6626,7 +6644,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                     fullHtml = fullHtml + bodyEndInjection;
                 }
 
-                const isVideoAd = (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable');
+                const isVideoAd = (adsLocation === 'video-forced' || adsLocation === 'video-skippable');
                 if (adsHTML) {
                     if (adsLocation === 'top' || adsLocation === 'popup' || isVideoAd) {
                         if (/<body[^>]*>/i.test(fullHtml)) {
@@ -6646,13 +6664,12 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 return fullHtml;
             }
 
-            const isVideoAdMode = (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable');
+            const isVideoAdMode = (adsLocation === 'video-forced' || adsLocation === 'video-skippable');
             let finalBody = (adsLocation === 'top' || adsLocation === 'popup' || isVideoAdMode) ? adsHTML + h : (adsLocation === 'bottom' ? h + adsHTML : h);
             return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n${adsStyle}\n${c}\n</style>\n${consoleInterceptorScript}\n</head>\n<body>\n${finalBody}\n<script>\n${j}\n${adsJS}\n<\/script>\n${pythonRunnerScript}\n${cppRunnerScript}\n</body>\n</html>`;
         }
 
         function runCode() {
-            if (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable') { setMode('full-view'); }
             if (isAIResultEnabled) { runCodeWithAI(); return; }
             setAIResultBanner('');
             const source = buildFullSource();
@@ -6675,6 +6692,9 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             if(window.innerWidth <= 768) { changeLayoutMode('mobile'); } else { changeLayoutMode('pc'); } setMode('');
 
             adsLocation = localStorage.getItem('codespace_ads_location') || 'none';
+            if (adsLocation === 'video-skippable') adsLocation = 'video-forced';
+            else if (adsLocation === 'video-non-skippable') adsLocation = 'video-skippable';
+            if (adsLocation === 'video-forced' || adsLocation === 'video-skippable') { setMode('full-view'); }
             adsSize = localStorage.getItem('codespace_ads_size') || 'auto';
             isWeb2Enabled = localStorage.getItem('codespace_web2_enabled') === 'true';
             isAutoPasteEnabled = localStorage.getItem('codespace_autopaste_enabled') === 'true';
