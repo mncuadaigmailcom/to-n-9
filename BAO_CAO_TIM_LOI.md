@@ -87,3 +87,23 @@
 3. **Menu Trang Web AI** không đóng bằng phím Escape (bấm ra ngoài / nút ✖ vẫn đóng được).
 4. **Mở web bằng "Cửa sổ"/"Tab mới"** không ghi nhớ URL lần cuối vào ô link (chỉ "Mở trong khung" ghi nhớ) — không nhất quán nhỏ, không ảnh hưởng hoạt động.
 5. `openAIWebFrameInFrame()` gán `src` iframe 2 lần (thừa nhưng vô hại).
+
+---
+
+## 5. Tối ưu hiệu năng (thêm mới — không thay đổi hành vi/tính năng)
+
+| # | Khu vực | Vấn đề | Tối ưu đã làm |
+|---|---------|--------|---------------|
+| 1 | Khởi động | Tải **pyodide (~2.5MB) không dùng ở cấp ứng dụng** + `tesseract.js`/`html2canvas` tải sẵn từ đầu → trang mở rất chậm, bị chặn parse HTML | Bỏ hẳn pyodide ở app (iframe tự nạp khi chạy Python); `tesseract`/`html2canvas` → **lazy-load** đúng lúc dùng (OCR / chụp ảnh) qua `loadScriptOnce()`; thêm `defer` cho JSZip + Monaco loader để không chặn dựng trang |
+| 2 | Gõ code | `updateHttpsHighlighting()` quét toàn bộ code **mỗi keystroke** | Debounce 250ms **theo từng editor** (Map theo `getId()`) — highlight vẫn đủ, chỉ bớt việc quét liên tục |
+| 3 | Gõ code | `showSaveStatus()` tạo timeout mới mỗi phím (churn timer) | Dùng 1 timer dùng chung, `clearTimeout` trước khi set mới |
+| 4 | Chạy code | `runCode()` gán lại `srcdoc` kể cả khi source không đổi → iframe re-render thừa | Chỉ gán khi `viewer.srcdoc !== source` (không đổi hành vi, đỡ re-render lặp) |
+| 5 | Console | Bảng log phình vô hạn + `innerHTML.includes` quét toàn bộ mỗi dòng log → chậm dần O(n²) | Giữ tối đa **1500 dòng** (xóa dòng đầu khi vượt); kiểm tra dòng "Hệ thống..." qua `firstChild` thay vì quét toàn DOM |
+| 6 | Kéo khung AI web | `mousemove` set `style.width` mỗi event → nhiều layout/frame thừa | Throttle bằng `requestAnimationFrame` (chỉ 1 lần/frame), `endDrag` huỷ rAF đang chờ |
+| 7 | Log Boss Bot | `textContent +=` không giới hạn → chuỗi phình vô hạn | Buffer có giới hạn (~20KB, giữ 12KB cuối); tự đồng bộ nếu nơi khác ghi đè trực tiếp |
+| 8 | Gộp tính năng | Ô tìm kiếm render lại toàn bộ danh sách mỗi keystroke | Debounce 150ms qua `scheduleComboFeaturePickerRender()` |
+
+**Kiểm chứng (đều PASS):**
+- `node --check` hợp lệ; 206 id duy nhất; thẻ cân bằng (`div` 263/263, `select` 12/12, `span` 48/48, `iframe` 2/2); mọi handler & `getElementById` tồn tại.
+- Mô phỏng Node: `runCode` chỉ gán srcdoc khi khác (3 lần gọi → 1 lần gán); `webUrlLog` rút gọn đúng (~12.350 ký tự sau 3000 dòng) + đồng bộ khi bị ghi đè ngoài; console giữ đúng 1500 dòng; lazy-loader chỉ chèn 1 script, lỗi thì reject và tải lại được; highlight debounce gõ liên tục chỉ chạy 1 lần/250ms/editor.
+- Tính năng giữ nguyên: pyodide & JSCPP vẫn được nhúng trong trang kết quả, JSZip vẫn hoạt động, OCR/chụp ảnh có fallback thông báo khi không tải được thư viện.

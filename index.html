@@ -11,12 +11,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Space - Tích Hợp VS Code, Code Web & Boss Bot GitHub</title>
 
-    <!-- Thư viện CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <!-- Thư viện CDN (defer: không chặn dựng trang; thư viện nặng được tải theo nhu cầu) -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <!-- html2canvas + tesseract.js được tải lazy khi dùng tới (chụp ảnh / OCR). pyodide chỉ dùng trong trang kết quả do iframe tự nạp. -->
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1345,7 +1343,7 @@
                 </div>
             </div>
 
-            <input type="text" id="combo-search-input" class="combo-search-input" placeholder="🔍 Tìm nhanh tính năng muốn gộp..." oninput="renderComboFeaturePicker()">
+            <input type="text" id="combo-search-input" class="combo-search-input" placeholder="🔍 Tìm nhanh tính năng muốn gộp..." oninput="scheduleComboFeaturePickerRender()">
 
             <div id="combo-pick-wrap" class="combo-pick-wrap"></div>
 
@@ -2677,6 +2675,12 @@
             editingComboId = null;
         }
 
+        let comboPickerTimer = null;
+        function scheduleComboFeaturePickerRender() {
+            clearTimeout(comboPickerTimer);
+            comboPickerTimer = setTimeout(renderComboFeaturePicker, 150);
+        }
+
         function renderComboFeaturePicker() {
             const wrap = document.getElementById('combo-pick-wrap');
             const counter = document.getElementById('combo-selected-count');
@@ -2826,10 +2830,18 @@
             }
         }
 
+        let webUrlLogBuffer = null;
         function webUrlLog(msg, isError = false) {
             const logs = document.getElementById('web-url-logs');
             if (!logs) return;
-            logs.textContent += `\n> ${msg}`;
+            if (webUrlLogBuffer === null || logs.textContent !== webUrlLogBuffer) {
+                webUrlLogBuffer = logs.textContent; // đồng bộ nếu nơi khác ghi đè trực tiếp
+            }
+            webUrlLogBuffer += `\n> ${msg}`;
+            if (webUrlLogBuffer.length > 20000) {
+                webUrlLogBuffer = '…(log cũ đã được rút gọn)\n' + webUrlLogBuffer.slice(-12000);
+            }
+            logs.textContent = webUrlLogBuffer;
             if (isError) logs.style.color = '#f87171';
             else logs.style.color = '#4ade80';
             logs.scrollTop = logs.scrollHeight;
@@ -3288,6 +3300,8 @@
                 webUrlLog(`🔍 Bước 2/3: Boss Bot đang quét và nhận diện chữ/code từ ảnh chụp (WebAssembly OCR Engine)...`);
 
                 let extractedLines = [];
+
+                try { await ensureTesseract(); } catch(e) { webUrlLog('⚠️ Không tải được OCR engine, dùng chế độ phân tích tự động...'); }
 
                 if (typeof Tesseract !== 'undefined') {
                     try {
@@ -3943,17 +3957,25 @@ Yêu cầu bắt buộc:
                 if (frame) frame.style.pointerEvents = 'none';
             };
 
+            let aiWebLatestX = 0;
+            let aiWebResizeRaf = null;
             const moveDrag = (clientX) => {
                 if (!aiWebDragState) return;
-                const delta = clientX - aiWebDragState.startX;
-                const newWidth = aiWebDragState.startWidth + delta;
-                aiWebWidth = Math.max(AI_WEB_MIN_WIDTH, Math.min(Math.round(newWidth), aiWebMaxWidth()));
-                sidebar.style.width = aiWebWidth + 'px';
+                aiWebLatestX = clientX;
+                if (aiWebResizeRaf) return;
+                aiWebResizeRaf = requestAnimationFrame(() => {
+                    aiWebResizeRaf = null;
+                    const delta = aiWebLatestX - aiWebDragState.startX;
+                    const newWidth = aiWebDragState.startWidth + delta;
+                    aiWebWidth = Math.max(AI_WEB_MIN_WIDTH, Math.min(Math.round(newWidth), aiWebMaxWidth()));
+                    sidebar.style.width = aiWebWidth + 'px';
+                });
             };
 
             const endDrag = () => {
                 if (!aiWebDragState) return;
                 aiWebDragState = null;
+                if (aiWebResizeRaf) { cancelAnimationFrame(aiWebResizeRaf); aiWebResizeRaf = null; }
                 handle.classList.remove('dragging');
                 sidebar.classList.remove('dragging-width');
                 document.body.style.userSelect = '';
@@ -4647,6 +4669,7 @@ Yêu cầu bắt buộc:
                 const viewportWidth = Math.max(1, Math.round(viewer.clientWidth));
                 const viewportHeight = Math.max(1, Math.round(viewer.clientHeight));
                 const renderScale = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+                await ensureHtml2Canvas();
                 const fullCanvas = await html2canvas(frameDocument.documentElement, {
                     backgroundColor: '#ffffff',
                     useCORS: true,
@@ -5201,6 +5224,28 @@ Yêu cầu bắt buộc:
         function safeSetLocalStorage(key, value) {
             try { localStorage.setItem(key, value); return true; }
             catch (e) { console.warn('Không thể lưu (' + key + '): ' + e.message); return false; }
+        }
+
+        // ===== Lazy-load thư viện nặng (chỉ tải khi thực sự dùng tới) =====
+        const _scriptCache = {};
+        function loadScriptOnce(src) {
+            if (_scriptCache[src]) return _scriptCache[src];
+            _scriptCache[src] = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.onload = () => resolve();
+                s.onerror = () => { delete _scriptCache[src]; reject(new Error('Không tải được: ' + src)); };
+                document.head.appendChild(s);
+            });
+            return _scriptCache[src];
+        }
+        function ensureTesseract() {
+            if (typeof Tesseract !== 'undefined') return Promise.resolve();
+            return loadScriptOnce('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+        }
+        function ensureHtml2Canvas() {
+            if (typeof html2canvas === 'function') return Promise.resolve();
+            return loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
         }
 
         function switchActivePage(page) {
@@ -5931,18 +5976,24 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             });
         }
 
+        const httpsHighlightTimers = new Map();
         function updateHttpsHighlighting(editor) {
             if (!editor) return;
-            const model = editor.getModel();
-            if (!model) return;
+            const key = (editor.getId ? editor.getId() : editor);
+            clearTimeout(httpsHighlightTimers.get(key));
+            httpsHighlightTimers.set(key, setTimeout(() => {
+                httpsHighlightTimers.delete(key);
+                const model = editor.getModel();
+                if (!model) return;
 
-            const matches = model.findMatches('https://[^\\s"\'`<>]*', false, true, false, null, true);
-            const newDecorations = matches.map(m => ({
-                range: m.range,
-                options: { inlineClassName: 'highlight-https' }
-            }));
+                const matches = model.findMatches('https://[^\\s"\'`<>]*', false, true, false, null, true);
+                const newDecorations = matches.map(m => ({
+                    range: m.range,
+                    options: { inlineClassName: 'highlight-https' }
+                }));
 
-            editor._httpsDecorations = editor.deltaDecorations(editor._httpsDecorations || [], newDecorations);
+                editor._httpsDecorations = editor.deltaDecorations(editor._httpsDecorations || [], newDecorations);
+            }, 250));
         }
 
         function onCodeInput(page, type) {
@@ -5956,7 +6007,14 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             }, 600);
         }
 
-        function showSaveStatus() { const indicator = document.getElementById('save-indicator'); indicator.textContent = "Đang lưu..."; setTimeout(() => { indicator.textContent = "Đã lưu tự động"; }, 600); }
+        let saveStatusTimer = null;
+        function showSaveStatus() {
+            const indicator = document.getElementById('save-indicator');
+            if (!indicator) return;
+            indicator.textContent = "Đang lưu...";
+            clearTimeout(saveStatusTimer);
+            saveStatusTimer = setTimeout(() => { indicator.textContent = "Đã lưu tự động"; }, 600);
+        }
 
         function changeFontSize(amount) {
             currentFontSize = Math.max(10, Math.min(25, currentFontSize + amount));
@@ -6673,18 +6731,23 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             if (isAIResultEnabled) { runCodeWithAI(); return; }
             setAIResultBanner('');
             const source = buildFullSource();
-            document.getElementById('viewer').srcdoc = source;
+            const viewer = document.getElementById('viewer');
+            if (viewer && viewer.srcdoc !== source) viewer.srcdoc = source;
         }
 
+        const CONSOLE_MAX_LINES = 1500;
         window.addEventListener('message', function(event) {
             if (event.data && event.data.type) {
                 if (event.data.type === 'close-video-ad') { setMode(''); return; }
-                const outputs = document.getElementById('console-outputs'); if(outputs.innerHTML.includes("Hệ thống đang hoạt động...")) { outputs.innerHTML = ''; }
+                const outputs = document.getElementById('console-outputs');
+                if (outputs.firstChild && outputs.firstChild.textContent.includes("Hệ thống đang hoạt động...")) { outputs.innerHTML = ''; }
                 const logDiv = document.createElement('div');
                 if (event.data.type === 'error') { logDiv.className = 'console-error'; logDiv.textContent = `❌ [Lỗi] ${event.data.data}`; }
                 else if (event.data.type === 'warn') { logDiv.className = 'console-warn'; logDiv.textContent = `⚠️ [Cảnh Báo] ${event.data.data}`; }
                 else { logDiv.textContent = `> ${event.data.data}`; }
-                outputs.appendChild(logDiv); outputs.scrollTop = outputs.scrollHeight;
+                outputs.appendChild(logDiv);
+                while (outputs.childElementCount > CONSOLE_MAX_LINES) outputs.removeChild(outputs.firstChild);
+                outputs.scrollTop = outputs.scrollHeight;
             }
         });
 
