@@ -107,3 +107,26 @@
 - `node --check` hợp lệ; 206 id duy nhất; thẻ cân bằng (`div` 263/263, `select` 12/12, `span` 48/48, `iframe` 2/2); mọi handler & `getElementById` tồn tại.
 - Mô phỏng Node: `runCode` chỉ gán srcdoc khi khác (3 lần gọi → 1 lần gán); `webUrlLog` rút gọn đúng (~12.350 ký tự sau 3000 dòng) + đồng bộ khi bị ghi đè ngoài; console giữ đúng 1500 dòng; lazy-loader chỉ chèn 1 script, lỗi thì reject và tải lại được; highlight debounce gõ liên tục chỉ chạy 1 lần/250ms/editor.
 - Tính năng giữ nguyên: pyodide & JSCPP vẫn được nhúng trong trang kết quả, JSZip vẫn hoạt động, OCR/chụp ảnh có fallback thông báo khi không tải được thư viện.
+
+---
+
+## 6. Sửa "AI Trợ Lý bị lỗi" (không trả lời dù key đúng — đặc biệt trên điện thoại)
+
+**Nguyên nhân chẩn đoán được:**
+1. **Gemini API chặn theo khu vực** — Việt Nam không nằm trong danh sách quốc gia được hỗ trợ → API trả 403 `User location is not supported` dù key đúng.
+2. **CORS** — OpenAI / DeepSeek / xAI không cho trình duyệt gọi thẳng (không gửi `Access-Control-Allow-Origin`) → `Failed to fetch`.
+3. **Bàn phím điện thoại** — `onkeypress` (cũ, đã deprecated) nhiều trình duyệt di động không kích hoạt → bấm Enter không gửi.
+
+**Đã sửa:**
+| Thay đổi | Chi tiết |
+|----------|----------|
+| 🔌 **Nút "Kiểm tra kết nối"** trong modal 🔑 Key | Gửi 1 câu thử tới provider đang nhập → hiện "✅ Kết nối thành công" hoặc lỗi chi tiết — biết ngay key/CORS có vấn đề |
+| 🌐 **CORS Proxy cho từng key** (ô mới "CORS Proxy (tùy chọn)") | Hỗ trợ `https://corsproxy.io/?url=` hoặc dạng `{url}`. Mọi request AI đi qua proxy khi cấu hình |
+| 🔄 **Tự fallback qua proxy** | Nếu gọi trực tiếp fail (CORS/mạng) và key có proxy → tự thử lại qua proxy |
+| ⏰ **Timeout 60s** mỗi request | Không treo vô hạn; báo rõ "Quá thời gian chờ" |
+| 💡 **Thông báo lỗi rõ ràng** | Phân biệt: CORS/mạng → hướng dẫn điền proxy hoặc dùng OpenRouter/Groq/Claude; Gemini chặn vùng → cảnh báo "Nếu bạn ở Việt Nam..."; thiếu key → nút "🔑 Thêm / Chọn Key ngay" mở thẳng modal |
+| 📱 **Enter trên điện thoại** | Đổi toàn bộ `onkeypress` → `onkeydown` (6 ô input: chat AI, URL web, menu web, lưu bản lưu, prompt, lấy code web) |
+| 📝 **Ghi chú trong modal key** | Hướng dẫn ngay trong form: nên dùng OpenRouter/Groq/Claude hoặc điền CORS Proxy |
+
+**Kiểm chứng (jsdom + fetch mock, đều PASS):**
+- Chat trả lời đúng; lỗi CORS → thông báo có hướng dẫn (không "❌ ❌" kép); Gemini 403 vùng → có hint Việt Nam; có proxy + lỗi trực tiếp → tự gọi proxy thành công; Enter (keydown) gửi tin nhắn; nút kiểm tra kết nối hiện kết quả đúng; `node --check` PASS; id duy nhất, thẻ cân bằng.
