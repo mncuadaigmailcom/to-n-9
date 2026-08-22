@@ -2,9 +2,8 @@
 <html lang="vi">
 <head>
 <style>
- .fake-ad { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:12px; margin:10px auto; border-radius:6px; text-align:center; font-family:sans-serif; position:relative; z-index:99999; display:flex; flex-direction:column; justify-content:center; align-items:center; } .fake-ad-tag { position:absolute; top:2px; left:5px; font-size:9px; background:#ccc; color:#fff; padding:1px 3px; border-radius:2px; } .fake-ad-title { font-size:13px; display:block; margin-bottom:4px; font-weight:bold; } .fake-ad-close { position:absolute; top:4px; right:6px; background:none; border:none; font-weight:bold; cursor:pointer; } .video-ad-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); color:white; z-index:99999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family:sans-serif; padding:20px; text-align:center; } .video-box { width:100%; max-width:320px; height:180px; background:#000; display:flex; justify-content:center; align-items:center; border:2px solid #00b0ff; margin-bottom:15px; border-radius:6px; color:#00b0ff; font-weight:bold; } .video-timer-text { font-size:14px; margin-bottom:15px; } .video-btn { padding:10px 20px; background:#00e676; border:none; color:#052e16; font-weight:bold; border-radius:4px; cursor:pointer; } .video-btn:disabled { background:#3a3a40!important; color:#8e8e93!important; cursor:not-allowed!important; opacity:0.6; }  .fake-ad { width: calc(100% - 20px); } 
-body { background: #111; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }
-.card { background: #222; padding: 25px; border-radius: 8px; text-align: center; border: 1px solid #00b0ff; box-shadow: 0 4px 15px rgba(0,176,255,0.2); width: 90%; max-width: 400px; margin: 20px; }
+ .fake-ad { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:12px; margin:10px auto; border-radius:6px; text-align:center; font-family:sans-serif; position:relative; z-index:99999; display:flex; flex-direction:column; justify-content:center; align-items:center; } .fake-ad-tag { position:absolute; top:2px; left:5px; font-size:9px; background:#ccc; color:#fff; padding:1px 3px; border-radius:2px; } .fake-ad-title { font-size:13px; display:block; margin-bottom:4px; font-weight:bold; } .fake-ad-close { position:absolute; top:4px; right:6px; background:none; border:none; font-weight:bold; cursor:pointer; } .video-ad-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); color:white; z-index:99999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family:sans-serif; padding:20px; text-align:center; } .video-box { width:100%; max-width:320px; height:180px; background:#000; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; border:2px solid #00b0ff; margin-bottom:15px; border-radius:6px; color:#00b0ff; font-weight:bold; } .video-progress { width:82%; height:7px; background:#1b1b20; border-radius:4px; overflow:hidden; border:1px solid #2a2a32; } .video-progress-bar { width:0%; height:100%; background:linear-gradient(90deg,#00b0ff,#00e676); transition:width 1s linear; } .video-ad-badge { font-size:11px; color:#8e8e93; letter-spacing:0.5px; } .video-timer-text { font-size:14px; margin-bottom:15px; } .video-btn { padding:10px 20px; background:#00e676; border:none; color:#052e16; font-weight:bold; border-radius:4px; cursor:pointer; } .video-btn:disabled { background:#3a3a40!important; color:#8e8e93!important; cursor:not-allowed!important; opacity:0.6; }  .fake-ad { width: calc(100% - 20px); } 
+
 </style>
 <script>(function() { const origLog = console.log; const origErr = console.error; const origWarn = console.warn; console.log = function(...args) { window.parent.postMessage({ type: 'log', data: args.join(' ') }, '*'); origLog.apply(console, args); }; console.error = function(...args) { window.parent.postMessage({ type: 'error', data: args.join(' ') }, '*'); origErr.apply(console, args); }; console.warn = function(...args) { window.parent.postMessage({ type: 'warn', data: args.join(' ') }, '*'); origWarn.apply(console, args); }; window.onerror = function(m, s, l) { window.parent.postMessage({ type: 'error', data: m + " (Dòng " + l + ")" }, '*'); }; })();</script>
 
@@ -635,6 +634,48 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
         .ai-mode-toggle[data-mode="code"].active { background: linear-gradient(135deg, #00796b, #00c853); color: #041e13; }
         .ai-mode-toggle.active::after { content: " ✓"; font-size: 0.62rem; }
 
+        /* ====== TÍNH NĂNG MỚI: TỰ ĐỘNG NHẬP CODE AI ====== */
+        .ai-autoinsert-bar { display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 7px 9px; background: #15151a; border-bottom: 1px solid #26262c; }
+        .btn-ai-autoinsert { flex: 0 0 auto; padding: 5px 8px; border-radius: 999px; border: 1px solid #34343d; background: #202027; color: #8d97a3; font-size: 0.67rem; font-weight: 700; box-shadow: none; opacity: 0.78; }
+        .btn-ai-autoinsert:hover { opacity: 1; border-color: #59616d; }
+        .btn-ai-autoinsert.active { opacity: 1; color: #041e13; border-color: transparent; background: linear-gradient(135deg, #00796b, #00c853); box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 2px 9px rgba(0,0,0,0.3); }
+        .btn-ai-autoinsert.active::after { content: " ✓"; font-size: 0.62rem; }
+        .ai-autoinsert-note { margin-top: 8px; padding: 6px 8px; background: rgba(0,200,83,0.1); border: 1px solid rgba(0,200,83,0.3); border-radius: 6px; font-size: 0.7rem; color: #a7f3d0; line-height: 1.5; }
+
+        /* ====== TÍNH NĂNG MỚI: TRANG WEB AI (nhúng web AI trong khung AI) ====== */
+        .btn-ai-web { background: linear-gradient(135deg, #0ea5e9, #22d3ee) !important; color: #04222a !important; border: none !important; font-weight: bold; box-shadow: 0 0 10px rgba(34,211,238,0.45); }
+        .btn-ai-web:hover { opacity: 0.92; }
+        .btn-ai-web.active { background: linear-gradient(135deg, #f59e0b, #fbbf24) !important; color: #231500 !important; box-shadow: 0 0 14px rgba(251,191,36,0.7); }
+        #ai-web-wrap { display: none; flex: 1; min-height: 0; flex-direction: column; background: #fff; }
+        .ai-sidebar.web-mode #ai-web-wrap { display: flex; }
+        .ai-sidebar.web-mode .ai-active-key-bar,
+        .ai-sidebar.web-mode .ai-mode-bar,
+        .ai-sidebar.web-mode .ai-autoinsert-bar,
+        .ai-sidebar.web-mode #ai-chat-body,
+        .ai-sidebar.web-mode .ai-attach-preview,
+        .ai-sidebar.web-mode .ai-footer { display: none !important; }
+        .ai-web-topbar { display: flex; align-items: center; gap: 4px; padding: 5px 7px; background: #0f172a; border-bottom: 1px solid #1e293b; flex: 0 0 auto; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+        .ai-web-topbar::-webkit-scrollbar { display: none; }
+        .ai-web-status { flex: 0 0 auto; font-size: 0.75rem; }
+        .ai-web-preset { flex: 0 0 auto; max-width: 168px; padding: 4px 6px; border-radius: 4px; border: 1px solid #334155; background: #0b1120; color: #7dd3fc; font-size: 0.66rem; outline: none; }
+        .ai-web-preset:focus { border-color: #38bdf8; }
+        .ai-web-url { flex: 1 1 auto; min-width: 70px; padding: 4px 8px; border-radius: 4px; border: 1px solid #334155; background: #0b1120; color: #7dd3fc; font-size: 0.68rem; outline: none; }
+        .ai-web-url:focus { border-color: #38bdf8; }
+        .ai-web-topbar button { padding: 4px 7px; font-size: 0.65rem; border-radius: 4px; flex: 0 0 auto; }
+        .ai-web-topbtn { background: #1e293b !important; color: #94a3b8 !important; border: 1px solid #334155 !important; }
+        .ai-web-topbtn:hover { color: #38bdf8 !important; }
+        .btn-ai-web-open { background: #0284c7 !important; color: #fff !important; border-color: #0284c7 !important; }
+        .btn-ai-web-dock { background: linear-gradient(135deg, #7c3aed, #a855f7) !important; color: #fff !important; border: none !important; }
+        .btn-ai-web-close { background: #b91c1c !important; color: #fff !important; border-color: #b91c1c !important; padding: 4px 7px !important; }
+        #ai-web-frame-wrap { position: relative; flex: 1; min-height: 0; display: flex; }
+        #ai-web-frame { flex: 1; width: 100%; border: none; background: #fff; }
+        .ai-web-blocked-overlay { position: absolute; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; background: rgba(15,23,42,0.96); padding: 14px; }
+        .ai-web-blocked-overlay.show { display: flex; }
+        .ai-web-blocked-box { max-width: 320px; text-align: center; color: #cbd5e1; font-size: 0.78rem; line-height: 1.6; }
+        .ai-web-blocked-box b { color: #f8fafc; display: block; margin-bottom: 8px; font-size: 0.85rem; }
+        .ai-web-blocked-box p { margin-bottom: 10px; white-space: pre-line; color: #94a3b8; }
+        .ai-web-blocked-box button { margin: 4px 3px; padding: 7px 12px; font-size: 0.7rem; border-radius: 6px; }
+
         .ai-key-modal-content { width: 420px; }
         .ai-key-list { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; margin-bottom: 16px; }
         .ai-key-empty { font-size: 0.8rem; color: #7f8a94; text-align: center; padding: 14px 6px; border: 1px dashed #33333b; border-radius: 8px; }
@@ -900,6 +941,7 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
     <!-- THANH CÔNG CỤ CHÍNH (TOOLBAR) -->
     <div id="main-toolbar" class="toolbar">
         <button id="btn-toggle-ai" class="btn-ai" onclick="toggleAIPanel()">🤖 AI Trợ Lý</button>
+        <button id="btn-toggle-ai-web" class="btn-ai-web" onclick="toggleAIWebMode()" title="Bật: hiện web AI ngay trong khung AI Trợ Lý (chọn nhanh hoặc nhập link bất kỳ)">🌐 Trang Web AI: TẮT</button>
         <span class="divider">|</span>
         <button id="btn-layout-pc" class="btn-mode-pc btn-active" onclick="changeLayoutMode('pc')">🖥️ Bố cục PC</button>
         <button id="btn-layout-mobile" class="btn-mode-mobile" onclick="changeLayoutMode('mobile')">📱 Bố cục Mobile</button>
@@ -1038,6 +1080,10 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
                 <button type="button" class="ai-mode-toggle" data-mode="deep" onclick="toggleAIAssistantMode('deep')" aria-pressed="false" title="Phân tích kỹ, kiểm tra lỗi">🧠 Suy nghĩ sâu</button>
                 <button type="button" class="ai-mode-toggle" data-mode="code" onclick="toggleAIAssistantMode('code')" aria-pressed="false" title="Ưu tiên viết code hoàn chỉnh">💻 Code</button>
             </div>
+            <div id="ai-autoinsert-bar" class="ai-autoinsert-bar" title="Khi BẬT: code AI trả về trong chat sẽ TỰ ĐỘNG xóa code cũ và nhập thẳng vào đúng tab tương ứng (HTML/CSS/JS/Python/C++)">
+                <span class="ai-mode-label">📥 NHẬP CODE AI:</span>
+                <button type="button" id="btn-ai-autoinsert" class="btn-ai-autoinsert" onclick="toggleAIAutoInsert()" aria-pressed="false">Tự Động Nhập: TẮT</button>
+            </div>
             <div id="ai-chat-body" class="ai-body">
                 <div class="ai-msg bot">Xin chào! Tôi là AI Trợ lý lập trình. Bạn có thể bật các chế độ ⚡ Nhanh, 🧠 Suy nghĩ sâu và 💻 Code rồi gửi yêu cầu! 🚀</div>
             </div>
@@ -1048,6 +1094,51 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
                 <button id="btn-ai-capture-open" class="btn-ai-attach btn-ai-capture" onclick="startAIResultCapture()" title="Chụp một vùng vuông trong phần Kết quả và đưa vào AI">📷</button>
                 <input type="text" id="ai-user-input" class="ai-input" placeholder="Hỏi AI..." onkeypress="if(event.key==='Enter') sendAIMessage()">
                 <button class="btn-ai-send" onclick="sendAIMessage()" title="Gửi"></button>
+            </div>
+            <!-- TÍNH NĂNG MỚI: TRANG WEB AI (nhúng web AI ngay trong khung AI) -->
+            <div id="ai-web-wrap">
+                <div class="ai-web-topbar">
+                    <span class="ai-web-status" id="ai-web-status" title="">🌐</span>
+                    <select id="ai-web-preset" class="ai-web-preset" onchange="aiWebPresetChanged()" title="Chọn nhanh một trang web AI — 🔒 = trang chặn khung nhúng (bấm Tab mới / Cửa sổ để dùng)">
+                        <option value="">📚 Chọn web AI...</option>
+                        <optgroup label="AI Chat phổ biến">
+                            <option value="https://arena.ai/">🌐 Arena AI 🔒</option>
+                            <option value="https://chatgpt.com/">🤖 ChatGPT 🔒</option>
+                            <option value="https://claude.ai/">🟣 Claude 🔒</option>
+                            <option value="https://gemini.google.com/">🔷 Google Gemini 🔒</option>
+                            <option value="https://www.perplexity.ai/">🔎 Perplexity 🔒</option>
+                            <option value="https://huggingface.co/chat/">🤗 HuggingChat 🔒</option>
+                            <option value="https://chat.deepseek.com/">🔵 DeepSeek</option>
+                            <option value="https://console.groq.com/">⚡ Groq</option>
+                            <option value="https://chat.mistral.ai/">💬 Mistral Le Chat</option>
+                            <option value="https://poe.com/">🧠 Poe</option>
+                            <option value="https://you.com/">✨ You.com</option>
+                            <option value="https://copilot.microsoft.com/">🪟 Bing Copilot</option>
+                            <option value="https://phind.com/">🔍 Phind</option>
+                            <option value="https://www.blackbox.ai/">⬛ Blackbox AI</option>
+                            <option value="https://duckduckgo.com/">🦆 DuckDuckGo AI</option>
+                        </optgroup>
+                    </select>
+                    <input type="text" id="ai-web-url" class="ai-web-url" value="https://arena.ai/" spellcheck="false" onkeypress="if(event.key==='Enter') aiWebLoadUrl()" title="Nhập link bất kỳ trang web AI nào rồi nhấn Enter">
+                    <button type="button" class="ai-web-topbtn" onclick="aiWebReload()" title="Tải lại trang">🔄</button>
+                    <button type="button" class="btn-ai-web-open" onclick="window.open(aiWebCurrentUrl(),'_blank')" title="Mở trang ở tab mới — dùng bình thường 100%">↗ Tab mới</button>
+                    <button type="button" class="btn-ai-web-dock" onclick="aiWebDockWindow()" title="Mở cửa sổ nhỏ gắn kế bên — dùng bình thường như khung nhúng">📌 Cửa sổ</button>
+                    <button type="button" class="btn-ai-web-close" onclick="toggleAIWebMode(false)" title="Tắt Trang Web AI">✖</button>
+                </div>
+                <div id="ai-web-frame-wrap">
+                    <iframe id="ai-web-frame" title="Trang Web AI" allow="clipboard-read; clipboard-write; fullscreen; geolocation; microphone; camera; autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <div id="ai-web-blocked-overlay" class="ai-web-blocked-overlay">
+                        <div class="ai-web-blocked-box">
+                            <b id="ai-web-blocked-title">🌐 Đang tải trang web...</b>
+                            <p id="ai-web-blocked-msg"></p>
+                            <div>
+                                <button type="button" class="btn-ai-web-open" onclick="window.open(aiWebCurrentUrl(),'_blank')">↗ Mở tab mới</button>
+                                <button type="button" class="btn-ai-web-dock" onclick="aiWebDockWindow()">📌 Cửa sổ kế bên</button>
+                                <button type="button" class="ai-web-topbtn" onclick="aiWebReload()">🔄 Thử lại</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1170,7 +1261,8 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
 
             <div id="combo-manage-list"></div>
 
-            <p class="combo-hint">💡 Nút <b>👁️ Hiện/Ẩn</b> quyết định nhóm đó có xuất hiện trong menu tổng hợp hay không.<br>🙈 Khi bật <b>"Ẩn nút gốc khi đã gộp"</b>: tính năng nào đã nằm trong nhóm sẽ <b>biến mất khỏi thanh công cụ bên ngoài</b> cho gọn, và vẫn dùng bình thường trong menu 🧩. Tắt 🧩 Tổng Hợp là mọi nút gốc hiện lại đầy đủ — <b>không mất tính năng nào cả</b>.</p>
+            <p class="combo-hint">💡 Nút <b>👁️ Hiện/Ẩn</b> quyết định nhóm đó có xuất hiện trong menu tổng hợp hay không.
+🙈 Khi bật <b>"Ẩn nút gốc khi đã gộp"</b>: tính năng nào đã nằm trong nhóm sẽ <b>biến mất khỏi thanh công cụ bên ngoài</b> cho gọn, và vẫn dùng bình thường trong menu 🧩. Tắt 🧩 Tổng Hợp là mọi nút gốc hiện lại đầy đủ — <b>không mất tính năng nào cả</b>.</p>
         </div>
     </div>
 
@@ -1518,8 +1610,8 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
                     <option value="top">⬆️ Trên cùng</option>
                     <option value="bottom">⬇️ Dưới cùng</option>
                     <option value="popup">📺 Giữa màn hình</option>
-                    <option value="video-skippable">🎥 Video bỏ qua (5s)</option>
-                    <option value="video-non-skippable">🔒 Video bắt buộc (15s)</option>
+                    <option value="video-skippable">🔒 Video 5s - BẮT BUỘC xem hết mới vào web</option>
+                    <option value="video-non-skippable">🎬 Video 60s - Bỏ qua được sau 15s</option>
                 </select>
             </div>
             <div class="setting-item" id="ads-size-container">
@@ -1626,6 +1718,8 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
         let isWeb2Enabled = false;
         let isAutoPasteEnabled = false;
         let isAIResultEnabled = false;
+        let isAIAutoInsertEnabled = false;
+        let isAIWebModeEnabled = false;
         let aiResultRunToken = 0;
         let lastClipboardText = null;
         let autoPasteInterval = null;
@@ -1977,7 +2071,7 @@ body { background: #111; color: #fff; display: flex; flex-direction: column; jus
                 const d = item.data[page] || {};
                 const html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${(item.name || 'Ban luu').replace(/</g, '')}</title>\n<style>\n${d.css || ''}\n</style>\n</head>\n<body>\n${d.html || ''}\n<script>\n${d.js || ''}\n<\/script>\n
 <script>
-console.log("⚡ [Trang 1] JavaScript đã sẵn sàng hoạt động!");
+
 
 </script>
 
@@ -2079,6 +2173,8 @@ console.log("⚡ [Trang 1] JavaScript đã sẵn sàng hoạt động!");
             { id: 'ai-newchat', cat: 'AI & Lấy code web', icon: '🆕', label: 'Bắt đầu chat AI mới',          run: () => startNewAIChat() },
             { id: 'ai-capture', cat: 'AI & Lấy code web', icon: '📷', label: 'Chụp vùng kết quả cho AI',     run: () => startAIResultCapture() },
             { id: 'ai-result',  cat: 'AI & Lấy code web', icon: '✨', label: 'Bật/tắt Kết Quả AI',           run: () => toggleAIResultFeature() },
+            { id: 'ai-autoinsert', cat: 'AI & Lấy code web', icon: '📥', label: 'Bật/tắt Tự Động Nhập Code AI', run: () => toggleAIAutoInsert() },
+            { id: 'ai-web',     cat: 'AI & Lấy code web', icon: '🌐', label: 'Bật/tắt Trang Web AI (mọi web AI)', run: () => toggleAIWebMode() },
             { id: 'codeweb',    cat: 'AI & Lấy code web', icon: '👑', label: 'Mở CODE WEB PRO MAX',          run: () => toggleWebUrlModal(true) }
         ];
 
@@ -2137,6 +2233,8 @@ console.log("⚡ [Trang 1] JavaScript đã sẵn sàng hoạt động!");
             'ai-newchat': ['#btn-ai-newchat'],
             'ai-capture': ['#btn-ai-capture-open'],
             'ai-result': ['#btn-toggle-ai-result'],
+            'ai-autoinsert': ['#btn-ai-autoinsert'],
+            'ai-web': ['#btn-toggle-ai-web'],
             'codeweb': ['#btn-web-url-fetch']
         };
 
@@ -3357,7 +3455,6 @@ Yêu cầu bắt buộc:
             showAutoPasteToast(`📋 Đã tự động bóc tách và dán mã nguồn vào editor!`);
             toggleWebUrlModal(false);
         }
-
         /* ==================== AI ASSISTANT FUNCTIONS ==================== */
         function toggleAIPanel() {
             const sidebar = document.getElementById('ai-sidebar');
@@ -3427,6 +3524,175 @@ Yêu cầu bắt buộc:
             saveAIAssistantModes();
             updateAIAssistantModeUI();
             showAutoPasteToast('🤖 Chế độ AI: ' + getActiveAIModeLabel());
+        }
+
+        /* ==================== TÍNH NĂNG MỚI: TỰ ĐỘNG NHẬP CODE AI ==================== */
+        function toggleAIAutoInsert(enable) {
+            isAIAutoInsertEnabled = (enable === undefined) ? !isAIAutoInsertEnabled : enable;
+            safeSetLocalStorage('codespace_ai_autoinsert_enabled', isAIAutoInsertEnabled ? 'true' : 'false');
+            updateAIAutoInsertUI();
+            showAutoPasteToast(isAIAutoInsertEnabled
+                ? '📥 Tự Động Nhập Code AI: ĐÃ BẬT — code AI trả về sẽ tự động xóa code cũ và nhập vào tab'
+                : '📥 Tự Động Nhập Code AI: ĐÃ TẮT');
+        }
+
+        function updateAIAutoInsertUI() {
+            const btn = document.getElementById('btn-ai-autoinsert');
+            if (!btn) return;
+            if (isAIAutoInsertEnabled) {
+                btn.textContent = 'Tự Động Nhập: BẬT';
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
+            } else {
+                btn.textContent = 'Tự Động Nhập: TẮT';
+                btn.classList.remove('active');
+                btn.setAttribute('aria-pressed', 'false');
+            }
+        }
+
+        /* ==================== TÍNH NĂNG MỚI: TRANG WEB AI (nhúng web AI trong khung AI) ==================== */
+        const AI_WEB_DEFAULT_URL = 'https://arena.ai/';
+        let aiWebLoadTimer = null;
+        let aiWebLoadedOnce = false;
+
+        function aiWebCurrentUrl() {
+            const input = document.getElementById('ai-web-url');
+            let u = input ? input.value.trim() : '';
+            if (!u) u = AI_WEB_DEFAULT_URL;
+            if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+            return u;
+        }
+
+        function aiWebPresetChanged() {
+            const sel = document.getElementById('ai-web-preset');
+            if (!sel || !sel.value) return;
+            const input = document.getElementById('ai-web-url');
+            if (input) input.value = sel.value;
+            aiWebLoadUrl();
+            showAutoPasteToast('🌐 Đã chọn trang web AI: ' + sel.value);
+        }
+
+        function aiWebRememberLastUrl(url) {
+            safeSetLocalStorage('codespace_ai_web_last_url', url);
+        }
+
+        function aiWebLastUrl() {
+            return localStorage.getItem('codespace_ai_web_last_url') || AI_WEB_DEFAULT_URL;
+        }
+
+        function aiWebStartLoadWatch() {
+            clearTimeout(aiWebLoadTimer);
+            const ov = document.getElementById('ai-web-blocked-overlay');
+            const st = document.getElementById('ai-web-status');
+            if (ov) ov.classList.remove('show');
+            if (st) st.textContent = '⏳';
+            aiWebLoadTimer = setTimeout(() => {
+                if (aiWebLoadedOnce) return;
+                const url = aiWebCurrentUrl();
+                const ov2 = document.getElementById('ai-web-blocked-overlay');
+                const st2 = document.getElementById('ai-web-status');
+                const isArena = /arena\.ai/i.test(url);
+                const title = document.getElementById('ai-web-blocked-title');
+                const msg = document.getElementById('ai-web-blocked-msg');
+                if (title) title.textContent = isArena
+                    ? '🔒 arena.ai chặn hiển thị trong khung nhúng'
+                    : '⚠️ Không tải được trang web này';
+                if (msg) msg.textContent = isArena
+                    ? 'arena.ai bật X-Frame-Options: SAMEORIGIN nên KHÔNG website nào nhúng được nó vào khung iframe (quy tắc bảo mật của trình duyệt).\nBạn vẫn dùng bình thường qua các nút bên dưới:'
+                    : 'Trang web có thể chặn khung nhúng hoặc đang tải chậm.\nMở tab mới hoặc cửa sổ kế bên để dùng bình thường.';
+                if (ov2) ov2.classList.add('show');
+                if (st2) st2.textContent = '🔒';
+            }, 9000);
+        }
+
+        function aiWebLoadUrl() {
+            const frame = document.getElementById('ai-web-frame');
+            if (!frame) return;
+            const url = aiWebCurrentUrl();
+            const input = document.getElementById('ai-web-url');
+            if (input) input.value = url;
+            aiWebRememberLastUrl(url);
+            const sel = document.getElementById('ai-web-preset');
+            if (sel && sel.querySelector('option[value="' + url.replace(/"/g, '') + '"]')) sel.value = url;
+            else if (sel) sel.value = '';
+            aiWebLoadedOnce = false;
+            frame.src = url;
+            aiWebStartLoadWatch();
+        }
+
+        function aiWebReload() {
+            const frame = document.getElementById('ai-web-frame');
+            if (!frame) return;
+            aiWebLoadedOnce = false;
+            frame.src = aiWebCurrentUrl();
+            aiWebStartLoadWatch();
+        }
+
+        function aiWebDockWindow() {
+            const url = aiWebCurrentUrl();
+            const w = Math.min(430, Math.max(330, Math.round(window.innerWidth * 0.32)));
+            const h = Math.min(780, Math.max(500, Math.round(window.innerHeight * 0.92)));
+            const left = Math.max(8, Math.round((window.innerWidth - w) / 2) - 160);
+            const top = Math.max(10, Math.round((window.innerHeight - h) / 2));
+            window.open(url, 'aiWebDock', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,status=no');
+            showAutoPasteToast('📌 Đã mở cửa sổ nhỏ gắn kế bên — dùng bình thường được!');
+        }
+
+        function initAIWebFrameEvents() {
+            const frame = document.getElementById('ai-web-frame');
+            if (!frame) return;
+            frame.addEventListener('load', () => {
+                aiWebLoadedOnce = true;
+                clearTimeout(aiWebLoadTimer);
+                const ov = document.getElementById('ai-web-blocked-overlay');
+                const st = document.getElementById('ai-web-status');
+                if (ov) ov.classList.remove('show');
+                if (st) st.textContent = '🌐';
+            });
+        }
+
+        function updateAIWebModeUI() {
+            const btn = document.getElementById('btn-toggle-ai-web');
+            if (btn) {
+                btn.textContent = isAIWebModeEnabled ? '🌐 Trang Web AI: BẬT' : '🌐 Trang Web AI: TẮT';
+                btn.classList.toggle('active', isAIWebModeEnabled);
+            }
+            const sidebar = document.getElementById('ai-sidebar');
+            if (!sidebar) return;
+            sidebar.classList.toggle('web-mode', isAIWebModeEnabled);
+            if (isAIWebModeEnabled) {
+                sidebar.classList.remove('collapsed');
+                const aiBtn = document.getElementById('btn-toggle-ai');
+                if (aiBtn) aiBtn.classList.add('btn-active');
+                const lastUrl = aiWebLastUrl();
+                const frame = document.getElementById('ai-web-frame');
+                if (frame && !frame.getAttribute('src')) {
+                    frame.src = lastUrl;
+                    const input = document.getElementById('ai-web-url');
+                    if (input) input.value = lastUrl;
+                    const sel = document.getElementById('ai-web-preset');
+                    if (sel && sel.querySelector('option[value="' + lastUrl.replace(/"/g, '') + '"]')) sel.value = lastUrl;
+                }
+                aiWebStartLoadWatch();
+            } else {
+                clearTimeout(aiWebLoadTimer);
+                const ov = document.getElementById('ai-web-blocked-overlay');
+                if (ov) ov.classList.remove('show');
+                const st = document.getElementById('ai-web-status');
+                if (st) st.textContent = '🌐';
+            }
+        }
+
+        function toggleAIWebMode(enable) {
+            isAIWebModeEnabled = (enable === undefined) ? !isAIWebModeEnabled : enable;
+            safeSetLocalStorage('codespace_ai_web_mode_enabled', isAIWebModeEnabled ? 'true' : 'false');
+            updateAIWebModeUI();
+            setTimeout(() => {
+                if (editors[currentTab]) editors[currentTab].layout();
+            }, 240);
+            showAutoPasteToast(isAIWebModeEnabled
+                ? '🌐 Trang Web AI: ĐÃ BẬT — web AI đang hiển thị trong khung, nếu bị chặn hãy bấm "↗ Tab mới" hoặc "📌 Cửa sổ"!'
+                : '🌐 Trang Web AI: ĐÃ TẮT');
         }
 
         function buildAIAssistantModeInstructions() {
@@ -3645,7 +3911,7 @@ Yêu cầu bắt buộc:
             const pyCode = getCode(activeEditPage, 'py');
             const cppCode = getCode(activeEditPage, 'cpp');
 
-            return `Bạn là trợ lý lập trình thông minh, có khả năng đọc và hiểu TOÀN BỘ dự án của người dùng gồm 5 phần: HTML, CSS, JS, Python và C++ (trang hiện tại: ${activeEditPage.toUpperCase()}). Tab người dùng đang mở là: ${currentTab.toUpperCase()}.\n${buildAIAssistantModeInstructions()}\n--- HTML ---\n\`\`\`html\n${htmlCode}\n\`\`\`\n\n--- CSS ---\n\`\`\`css\n${cssCode}\n\`\`\`\n\n--- JS ---\n\`\`\`javascript\n${jsCode}\n\`\`\`\n\n--- PYTHON ---\n\`\`\`python\n${pyCode}\n\`\`\`\n\n--- C++ ---\n\`\`\`cpp\n${cppCode}\n\`\`\`\n\nYêu cầu người dùng: ${text}\n\nHãy phản hồi theo đúng các CHẾ ĐỘ AI đang bật và dựa trên hiểu biết về TOÀN BỘ 5 phần code ở trên. Nếu cung cấp code mới cho một phần cụ thể, hãy đặt trong khối mã markdown đúng loại ngôn ngữ đó (html, css, javascript, python, cpp) để hệ thống tự nhận diện và chèn đúng vào tab tương ứng.`;
+            return `Bạn là trợ lý lập trình thông minh, có khả năng đọc và hiểu TOÀN BỘ dự án của người dùng gồm 5 phần: HTML, CSS, JS, Python và C++ (trang hiện tại: ${activeEditPage.toUpperCase()}). Tab người dùng đang mở là: ${currentTab.toUpperCase()}.\n${buildAIAssistantModeInstructions()}\n--- HTML ---\n\`\`\`html\n${htmlCode}\n\`\`\`\n\n--- CSS ---\n\`\`\`css\n${cssCode}\n\`\`\`\n\n--- JS ---\n\`\`\`javascript\n${jsCode}\n\`\`\`\n\n--- PYTHON ---\n\`\`\`python\n${pyCode}\n\`\`\`\n\n--- C++ ---\n\`\`\`cpp\n${cppCode}\n\`\`\`\n\nYêu cầu người dùng: ${text}\n\nHãy phản hồi theo đúng các CHẾ ĐỘ AI đang bật và dựa trên hiểu biết về TOÀN BỘ 5 phần code ở trên. Nếu cung cấp code mới cho một phần cụ thể, hãy đặt trong khối mã markdown đúng loại ngôn ngữ đó (html, css, javascript, python, cpp) để hệ thống tự nhận diện và chèn đúng vào tab tương ứng.${isAIAutoInsertEnabled ? '\nCHẾ ĐỘ TỰ ĐỘNG NHẬP CODE ĐANG BẬT: mọi khối code bạn trả về trong markdown (html, css, javascript, python, cpp) sẽ TỰ ĐỘNG được nhập vào đúng tab tương ứng và XÓA code cũ. Hãy trả về code đầy đủ, hoàn chỉnh, chạy được ngay.' : ''}`;
         }
 
         let codeBlockIdCounter = 0;
@@ -3657,10 +3923,14 @@ Yêu cầu bắt buộc:
         function renderAIResponseIntoBotMsg(botMsg, responseText) {
             let formatted = escapeHtml(responseText);
             const langMap = { html: 'html', htm: 'html', css: 'css', js: 'js', javascript: 'js', py: 'py', python: 'py', cpp: 'cpp', 'c++': 'cpp', cc: 'cpp', cxx: 'cpp' };
+            const autoBlocks = [];
             formatted = formatted.replace(/```([a-z]*)\n([\s\S]*?)```/gi, function(match, lang, code) {
                 const rawCode = unescapeHtml(code);
                 const b64Code = btoa(encodeURIComponent(rawCode));
                 const targetTab = langMap[(lang || '').toLowerCase()] || currentTab;
+                if (Object.prototype.hasOwnProperty.call(langMap, (lang || '').toLowerCase())) {
+                    autoBlocks.push({ code: rawCode, tab: targetTab });
+                }
                 const label = CODE_LANG_LABEL[targetTab] || targetTab.toUpperCase();
                 const langClass = CODE_LANG_CLASS[targetTab] || '';
                 const blockId = 'codeblk_' + (codeBlockIdCounter++);
@@ -3678,6 +3948,29 @@ Yêu cầu bắt buộc:
                     + '</div>';
             });
             botMsg.innerHTML = formatted.replace(/\n/g, '<br>');
+            if (isAIAutoInsertEnabled && autoBlocks.length > 0) {
+                autoInsertAICodeBlocks(botMsg, autoBlocks);
+            }
+        }
+
+        function autoInsertAICodeBlocks(botMsg, blocks) {
+            const done = [];
+            blocks.forEach(blk => {
+                try {
+                    setCode(activeEditPage, blk.tab, blk.code);
+                    if (blk.tab !== currentTab) showEditor(blk.tab);
+                    if (editors[blk.tab]) editors[blk.tab].layout();
+                    done.push('✅ ' + blk.tab.toUpperCase());
+                } catch (e) {
+                    done.push('❌ ' + blk.tab.toUpperCase());
+                }
+            });
+            runCode();
+            const note = document.createElement('div');
+            note.className = 'ai-autoinsert-note';
+            note.innerHTML = '📥 <b>Tự động nhập:</b> ' + done.join(' • ') + ' — code cũ đã được thay thế.';
+            if (botMsg) botMsg.appendChild(note);
+            showAutoPasteToast('📥 AI đã tự động nhập code: ' + done.join(', '));
         }
 
         function toggleCopyMenu(blockId, evt) {
@@ -4610,7 +4903,6 @@ Yêu cầu bắt buộc:
                 }
             }
         }
-
         /* ==================== CORE WORKSPACE LOGIC ==================== */
         function getCode(page, type) {
             if (models[page] && models[page][type]) {
@@ -5787,12 +6079,61 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             const py = getCode(target, 'py') || '';
             const cpp = getCode(target, 'cpp') || '';
 
-            let adsStyle = ` .fake-ad { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:12px; margin:10px auto; border-radius:6px; text-align:center; font-family:sans-serif; position:relative; z-index:99999; display:flex; flex-direction:column; justify-content:center; align-items:center; } .fake-ad-tag { position:absolute; top:2px; left:5px; font-size:9px; background:#ccc; color:#fff; padding:1px 3px; border-radius:2px; } .fake-ad-title { font-size:13px; display:block; margin-bottom:4px; font-weight:bold; } .fake-ad-close { position:absolute; top:4px; right:6px; background:none; border:none; font-weight:bold; cursor:pointer; } .video-ad-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); color:white; z-index:99999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family:sans-serif; padding:20px; text-align:center; } .video-box { width:100%; max-width:320px; height:180px; background:#000; display:flex; justify-content:center; align-items:center; border:2px solid #00b0ff; margin-bottom:15px; border-radius:6px; color:#00b0ff; font-weight:bold; } .video-timer-text { font-size:14px; margin-bottom:15px; } .video-btn { padding:10px 20px; background:#00e676; border:none; color:#052e16; font-weight:bold; border-radius:4px; cursor:pointer; } .video-btn:disabled { background:#3a3a40!important; color:#8e8e93!important; cursor:not-allowed!important; opacity:0.6; } `;
+            let adsStyle = ` .fake-ad { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:12px; margin:10px auto; border-radius:6px; text-align:center; font-family:sans-serif; position:relative; z-index:99999; display:flex; flex-direction:column; justify-content:center; align-items:center; } .fake-ad-tag { position:absolute; top:2px; left:5px; font-size:9px; background:#ccc; color:#fff; padding:1px 3px; border-radius:2px; } .fake-ad-title { font-size:13px; display:block; margin-bottom:4px; font-weight:bold; } .fake-ad-close { position:absolute; top:4px; right:6px; background:none; border:none; font-weight:bold; cursor:pointer; } .video-ad-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); color:white; z-index:99999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family:sans-serif; padding:20px; text-align:center; } .video-box { width:100%; max-width:320px; height:180px; background:#000; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; border:2px solid #00b0ff; margin-bottom:15px; border-radius:6px; color:#00b0ff; font-weight:bold; } .video-progress { width:82%; height:7px; background:#1b1b20; border-radius:4px; overflow:hidden; border:1px solid #2a2a32; } .video-progress-bar { width:0%; height:100%; background:linear-gradient(90deg,#00b0ff,#00e676); transition:width 1s linear; } .video-ad-badge { font-size:11px; color:#8e8e93; letter-spacing:0.5px; } .video-timer-text { font-size:14px; margin-bottom:15px; } .video-btn { padding:10px 20px; background:#00e676; border:none; color:#052e16; font-weight:bold; border-radius:4px; cursor:pointer; } .video-btn:disabled { background:#3a3a40!important; color:#8e8e93!important; cursor:not-allowed!important; opacity:0.6; } `;
             if (adsSize === 'leaderboard') adsStyle += ` .fake-ad { width: 728px; height: 90px; max-width: 95%; } `; else if (adsSize === 'square') adsStyle += ` .fake-ad { width: 336px; height: 280px; max-width: 95%; } `; else if (adsSize === 'skyscraper') adsStyle += ` .fake-ad { width: 160px; height: 600px; float: left; margin: 10px; max-height: 95%; } `; else adsStyle += ` .fake-ad { width: calc(100% - 20px); } `;
             if (adsLocation === 'popup') { adsStyle += ` .fake-ad { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid #00b0ff; color: #333; box-shadow: 0 10px 30px rgba(0,0,0,0.3); } `; }
             let adsHTML = ''; let adsJS = '';
             if (['top', 'bottom', 'popup'].includes(adsLocation)) { adsHTML = `<div class="fake-ad"><span class="fake-ad-tag">Ads</span><span class="fake-ad-title">🔥 HỌC CODE PRO 2026</span><button class="fake-ad-close" onclick="this.parentElement.remove()">✕</button></div>`; }
-            if (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable') { const time = (adsLocation === 'video-skippable') ? 5 : 15; adsHTML = `<div id="video-ad" class="video-ad-overlay"><div class="video-box"><span>📺 Video Quảng Cáo Giả Lập</span></div><div id="video-timer" class="video-timer-text">Đang tải...</div><button id="video-close-btn" class="video-btn" disabled onclick="window.parent.postMessage({type:'close-video-ad'},'*'); document.getElementById('video-ad').remove()">Vui lòng xem...</button></div>`; adsJS = `(function() { let count = ${time}; const timer = document.getElementById('video-timer'); const btn = document.getElementById('video-close-btn'); timer.textContent = "Quảng cáo kết thúc sau " + count + " giây..."; const interval = setInterval(() => { count--; if(count > 0) { timer.textContent = "Quảng cáo kết thúc sau " + count + " giây..."; } else { clearInterval(interval); timer.textContent = "Bạn đã xem xong!"; btn.disabled = false; btn.textContent = "⏩ BỎ QUA QUẢNG CÁO"; } }, 1000); })();`; }
+            if (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable') {
+                // 🔒 video-skippable  : 5 giây, KHÔNG được bỏ qua, phải xem hết mới vào web
+                // 🎬 video-non-skippable: 60 giây, xem đủ 15 giây là được bỏ qua
+                const totalTime = (adsLocation === 'video-skippable') ? 5 : 60;
+                const skipAfter = (adsLocation === 'video-skippable') ? 5 : 15;
+                const adTitle = (adsLocation === 'video-skippable')
+                    ? `📺 Quảng Cáo Bắt Buộc ${totalTime}s`
+                    : `📺 Video Quảng Cáo ${totalTime}s`;
+                const adBadge = (adsLocation === 'video-skippable')
+                    ? 'KHÔNG THỂ BỎ QUA'
+                    : `CÓ THỂ BỎ QUA SAU ${skipAfter}s`;
+
+                adsHTML = `<div id="video-ad" class="video-ad-overlay"><div class="video-box"><span>${adTitle}</span><div class="video-progress"><div id="video-progress-bar" class="video-progress-bar"></div></div><span class="video-ad-badge">${adBadge}</span></div><div id="video-timer" class="video-timer-text">Đang tải quảng cáo...</div><button id="video-close-btn" class="video-btn" disabled onclick="if(!this.disabled){window.parent.postMessage({type:'close-video-ad'},'*'); var b=document.getElementById('video-ad'); if(b) b.remove();}">🔒 Vui lòng xem quảng cáo...</button></div>`;
+
+                adsJS = `(function() {
+    var total = ${totalTime}, skipAfter = ${skipAfter}, elapsed = 0;
+    var timer = document.getElementById('video-timer');
+    var btn = document.getElementById('video-close-btn');
+    var bar = document.getElementById('video-progress-bar');
+    if (!timer || !btn) return;
+
+    function render() {
+        var remain = Math.max(0, total - elapsed);
+        if (bar) bar.style.width = Math.min(100, (elapsed / total) * 100).toFixed(2) + '%';
+
+        if (remain <= 0) {
+            timer.textContent = '✅ Bạn đã xem xong quảng cáo!';
+            btn.disabled = false;
+            btn.textContent = '▶ VÀO TRANG WEB';
+        } else if (elapsed >= skipAfter) {
+            timer.textContent = 'Quảng cáo còn ' + remain + ' giây — bạn được bỏ qua ngay!';
+            btn.disabled = false;
+            btn.textContent = '⏩ BỎ QUA QUẢNG CÁO';
+        } else {
+            timer.textContent = 'Quảng cáo kết thúc sau ' + remain + ' giây...';
+            btn.disabled = true;
+            btn.textContent = (skipAfter >= total)
+                ? '🔒 Phải xem hết ' + remain + 's mới vào được web'
+                : '🔒 Bỏ qua được sau ' + (skipAfter - elapsed) + ' giây';
+        }
+    }
+
+    render();
+    var interval = setInterval(function() {
+        elapsed++;
+        render();
+        if (elapsed >= total) clearInterval(interval);
+    }, 1000);
+})();`;
+            }
             const consoleInterceptorScript = `<script>(function() { const origLog = console.log; const origErr = console.error; const origWarn = console.warn; console.log = function(...args) { window.parent.postMessage({ type: 'log', data: args.join(' ') }, '*'); origLog.apply(console, args); }; console.error = function(...args) { window.parent.postMessage({ type: 'error', data: args.join(' ') }, '*'); origErr.apply(console, args); }; console.warn = function(...args) { window.parent.postMessage({ type: 'warn', data: args.join(' ') }, '*'); origWarn.apply(console, args); }; window.onerror = function(m, s, l) { window.parent.postMessage({ type: 'error', data: m + " (Dòng " + l + ")" }, '*'); }; })();<\/script>`;
 
             const pythonRunnerScript = py.trim() ? `<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"><\/script>
@@ -6016,8 +6357,9 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                     fullHtml = fullHtml + bodyEndInjection;
                 }
 
+                const isVideoAd = (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable');
                 if (adsHTML) {
-                    if (adsLocation === 'top' || adsLocation === 'popup') {
+                    if (adsLocation === 'top' || adsLocation === 'popup' || isVideoAd) {
                         if (/<body[^>]*>/i.test(fullHtml)) {
                             fullHtml = fullHtml.replace(/(<body[^>]*>)/i, `$1\n${adsHTML}\n`);
                         } else {
@@ -6035,7 +6377,8 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 return fullHtml;
             }
 
-            let finalBody = (adsLocation === 'top' || adsLocation === 'popup') ? adsHTML + h : (adsLocation === 'bottom' ? h + adsHTML : h);
+            const isVideoAdMode = (adsLocation === 'video-skippable' || adsLocation === 'video-non-skippable');
+            let finalBody = (adsLocation === 'top' || adsLocation === 'popup' || isVideoAdMode) ? adsHTML + h : (adsLocation === 'bottom' ? h + adsHTML : h);
             return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n${adsStyle}\n${c}\n</style>\n${consoleInterceptorScript}\n</head>\n<body>\n${finalBody}\n<script>\n${j}\n${adsJS}\n<\/script>\n${pythonRunnerScript}\n${cppRunnerScript}\n</body>\n</html>`;
         }
 
@@ -6068,6 +6411,11 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             isAutoPasteEnabled = localStorage.getItem('codespace_autopaste_enabled') === 'true';
             isAIResultEnabled = localStorage.getItem('codespace_ai_result_enabled') === 'true';
             updateAIResultButtonUI();
+            isAIAutoInsertEnabled = localStorage.getItem('codespace_ai_autoinsert_enabled') === 'true';
+            updateAIAutoInsertUI();
+            isAIWebModeEnabled = localStorage.getItem('codespace_ai_web_mode_enabled') === 'true';
+            updateAIWebModeUI();
+            initAIWebFrameEvents();
 
             document.getElementById('select-ads').value = adsLocation;
             document.getElementById('select-ads-size').value = adsSize;
@@ -6117,7 +6465,41 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 });
             }
 
-            require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' } });
+            const MONACO_CDN_LIST = [
+                'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs',
+                'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs',
+                'https://unpkg.com/monaco-editor@0.45.0/min/vs'
+            ];
+            let monacoCdnIndex = 0;
+
+            function showMonacoLoadError(reason) {
+                const box = document.getElementById('container-html');
+                if (box) {
+                    box.innerHTML = `<div style="padding:22px; color:#e1e1e6; font-family:sans-serif; font-size:0.85rem; line-height:1.7;">
+                        <div style="font-size:1rem; font-weight:800; color:#ff6b6b; margin-bottom:8px;">⚠️ Không tải được trình soạn thảo Monaco</div>
+                        <div style="color:#9aa4ad; margin-bottom:14px;">Lý do: ${escapeHtml(String(reason || 'mạng chậm hoặc CDN bị chặn'))}.
+Phần <b>Kết quả, Chạy code và các menu khác vẫn hoạt động bình thường</b> với code đã lưu.</div>
+                        <button onclick="retryLoadMonaco()" style="background:#00b0ff; color:#fff; border:none; padding:9px 16px; border-radius:6px; font-weight:bold; cursor:pointer;">🔄 Thử tải lại trình soạn thảo</button>
+                    </div>`;
+                }
+                try { toggleWeb2Feature(isWeb2Enabled); } catch (e) {}
+                try { runCode(); } catch (e) {}
+            }
+
+            window.retryLoadMonaco = function () {
+                monacoCdnIndex = (monacoCdnIndex + 1) % MONACO_CDN_LIST.length;
+                const box = document.getElementById('container-html');
+                if (box) box.innerHTML = '<div style="padding:22px; color:#8ecff5; font-family:sans-serif; font-size:0.85rem;">⏳ Đang tải lại trình soạn thảo...</div>';
+                bootMonacoEditors();
+            };
+
+            function bootMonacoEditors() {
+            if (typeof require === 'undefined' || typeof require.config !== 'function') {
+                showMonacoLoadError('không nạp được thư viện loader từ CDN');
+                return;
+            }
+            try {
+            require.config({ paths: { vs: MONACO_CDN_LIST[monacoCdnIndex] } });
             require(['vs/editor/editor.main'], function () {
                 const config = {
                     theme: 'vs-dark',
@@ -6166,7 +6548,21 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                     const btnAP = document.getElementById('btn-toggle-autopaste');
                     if (btnAP) { btnAP.textContent = '📋 Tự Động Dán: TẮT'; btnAP.classList.remove('active'); }
                 }
+            }, function (err) {
+                if (monacoCdnIndex < MONACO_CDN_LIST.length - 1) {
+                    monacoCdnIndex++;
+                    console.warn('Đổi sang CDN dự phòng cho Monaco: ' + MONACO_CDN_LIST[monacoCdnIndex]);
+                    bootMonacoEditors();
+                } else {
+                    showMonacoLoadError((err && err.message) ? err.message : 'tất cả CDN đều không phản hồi');
+                }
             });
+            } catch (e) {
+                showMonacoLoadError(e.message);
+            }
+            }
+
+            bootMonacoEditors();
         };
     </script>
 </body>
