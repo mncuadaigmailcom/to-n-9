@@ -176,8 +176,10 @@
             transition: all 0.25s ease;
             z-index: 25;
             height: 100%;
+            position: relative;
             box-shadow: 4px 0 24px rgba(0,0,0,0.35);
         }
+        .ai-sidebar.dragging-width { transition: none !important; }
         .ai-sidebar.collapsed {
             width: 0 !important;
             min-width: 0 !important;
@@ -676,6 +678,35 @@
         .ai-web-blocked-box p { margin-bottom: 10px; white-space: pre-line; color: #94a3b8; }
         .ai-web-blocked-box button { margin: 4px 3px; padding: 7px 12px; font-size: 0.7rem; border-radius: 6px; }
 
+        /* ====== Tay cầm kéo chỉnh độ rộng khung TRANG WEB AI (chỉ hiện khi bật Trang Web AI) ====== */
+        .ai-web-resizer { display: none; position: absolute; top: 0; right: -4px; width: 9px; height: 100%; cursor: col-resize; z-index: 30; touch-action: none; }
+        .ai-sidebar.web-mode .ai-web-resizer { display: block; }
+        .ai-web-resizer::after { content: ''; position: absolute; left: 3px; top: 0; bottom: 0; width: 3px; border-radius: 3px; background: rgba(56,189,248,0.30); transition: background 0.15s ease, width 0.15s ease, left 0.15s ease; }
+        .ai-web-resizer:hover::after, .ai-web-resizer.dragging::after { left: 1px; width: 6px; background: #38bdf8; }
+        .ai-web-wbtn { width: 22px; padding: 4px 0 !important; flex: 0 0 auto !important; }
+        .ai-sidebar.web-mode .ai-web-wbtn { display: inline-block; }
+
+        /* ====== MENU MỞ TRANG WEB AI (chọn AI / nhập link / khung / cửa sổ / tab) ====== */
+        .ai-web-menu-content { width: 480px; }
+        .ai-web-menu-label { font-size: 0.72rem; color: #94a3b8; font-weight: bold; margin: 12px 0 6px; }
+        .ai-web-menu-presets { display: flex; flex-wrap: wrap; gap: 6px; max-height: 158px; overflow-y: auto; padding: 2px; }
+        .ai-web-menu-presets::-webkit-scrollbar { width: 8px; }
+        .ai-web-menu-presets::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .ai-web-menu-preset { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 5px 9px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; white-space: nowrap; transition: border-color 0.15s, background 0.15s, color 0.15s; }
+        .ai-web-menu-preset:hover { border-color: #38bdf8; color: #7dd3fc; }
+        .ai-web-menu-preset.selected { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
+        .ai-web-menu-url { width: 100%; box-sizing: border-box; padding: 9px 10px; border-radius: 6px; border: 1px solid #334155; background: #0b1120; color: #7dd3fc; font-size: 0.82rem; outline: none; }
+        .ai-web-menu-url:focus { border-color: #38bdf8; }
+        .ai-web-menu-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .ai-web-menu-actions.secondary { margin-top: 8px; }
+        .ai-web-menu-btn { flex: 1 1 auto; padding: 10px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; border: none; cursor: pointer; transition: filter 0.15s; }
+        .ai-web-menu-btn:hover { filter: brightness(1.08); }
+        .ai-web-menu-btn.primary { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #fff; }
+        .ai-web-menu-btn.window { background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; }
+        .ai-web-menu-btn.tab { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+        .ai-web-menu-btn.tab:hover { color: #7dd3fc; }
+        .ai-web-menu-btn.off { background: #b91c1c; color: #fff; }
+
         .ai-key-modal-content { width: 420px; }
         .ai-key-list { display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; margin-bottom: 16px; }
         .ai-key-empty { font-size: 0.8rem; color: #7f8a94; text-align: center; padding: 14px 6px; border: 1px dashed #33333b; border-radius: 8px; }
@@ -794,6 +825,7 @@
             .autosave-status { width: 100%; text-align: right; margin-top: 2px; }
             .iframe-container.preview-mobile iframe { width: 100%; border: none; }
             .ai-sidebar { width: 100% !important; position: absolute; left: 0; top: 0; bottom: 0; }
+            .ai-web-resizer { display: none !important; }
             .save-slot-actions button { flex: 1 1 auto; }
         }
 
@@ -941,7 +973,7 @@
     <!-- THANH CÔNG CỤ CHÍNH (TOOLBAR) -->
     <div id="main-toolbar" class="toolbar">
         <button id="btn-toggle-ai" class="btn-ai" onclick="toggleAIPanel()">🤖 AI Trợ Lý</button>
-        <button id="btn-toggle-ai-web" class="btn-ai-web" onclick="toggleAIWebMode()" title="Bật: hiện web AI ngay trong khung AI Trợ Lý (chọn nhanh hoặc nhập link bất kỳ)">🌐 Trang Web AI: TẮT</button>
+        <button id="btn-toggle-ai-web" class="btn-ai-web" onclick="openAIWebMenu()" title="Bật: mở menu chọn web AI + nhập link (mở trong khung / cửa sổ / tab mới)">🌐 Trang Web AI: TẮT</button>
         <span class="divider">|</span>
         <button id="btn-layout-pc" class="btn-mode-pc btn-active" onclick="changeLayoutMode('pc')">🖥️ Bố cục PC</button>
         <button id="btn-layout-mobile" class="btn-mode-mobile" onclick="changeLayoutMode('mobile')">📱 Bố cục Mobile</button>
@@ -1120,6 +1152,8 @@
                         </optgroup>
                     </select>
                     <input type="text" id="ai-web-url" class="ai-web-url" value="https://arena.ai/" spellcheck="false" onkeypress="if(event.key==='Enter') aiWebLoadUrl()" title="Nhập link bất kỳ trang web AI nào rồi nhấn Enter">
+                    <button type="button" class="ai-web-topbtn ai-web-wbtn" onclick="nudgeAIWebWidth(-70)" title="Thu nhỏ khung Trang Web AI (bớt 70px)">−</button>
+                    <button type="button" class="ai-web-topbtn ai-web-wbtn" onclick="nudgeAIWebWidth(70)" title="Phóng to khung Trang Web AI (thêm 70px)">+</button>
                     <button type="button" class="ai-web-topbtn" onclick="aiWebReload()" title="Tải lại trang">🔄</button>
                     <button type="button" class="btn-ai-web-open" onclick="window.open(aiWebCurrentUrl(),'_blank')" title="Mở trang ở tab mới — dùng bình thường 100%">↗ Tab mới</button>
                     <button type="button" class="btn-ai-web-dock" onclick="aiWebDockWindow()" title="Mở cửa sổ nhỏ gắn kế bên — dùng bình thường như khung nhúng">📌 Cửa sổ</button>
@@ -1140,6 +1174,7 @@
                     </div>
                 </div>
             </div>
+            <div id="ai-web-resizer" class="ai-web-resizer" title="Kéo ngang để chỉnh độ rộng khung Trang Web AI • Nhấp đúp để đặt lại mặc định"></div>
         </div>
 
         <div id="editors-panel" class="editors">
@@ -1162,6 +1197,31 @@
                     </div>
                 </div>
                 <div id="console-outputs" class="console-outputs">Hệ thống đang hoạt động...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MENU TRANG WEB AI: CHỌN AI / NHẬP LINK / MỞ KHUNG HOẶC CỬA SỔ ==================== -->
+    <div id="ai-web-menu-modal" class="modal-overlay" onclick="closeAIWebMenu()">
+        <div class="modal-content ai-web-menu-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 style="color:#38bdf8; display:flex; align-items:center; gap:8px; font-size:1.02rem;">🌐 Trang Web AI — Mở Website AI</h3>
+                <button class="modal-close" onclick="closeAIWebMenu()">✖</button>
+            </div>
+
+            <div class="ai-web-menu-label">📚 Chọn nhanh một AI:</div>
+            <div id="ai-web-menu-presets" class="ai-web-menu-presets"></div>
+
+            <div class="ai-web-menu-label">🔗 Hoặc dán link trang web bất kỳ:</div>
+            <input type="text" id="ai-web-menu-url" class="ai-web-menu-url" placeholder="https://..." spellcheck="false" onkeypress="if(event.key==='Enter') openAIWebInFrame()" title="Nhập link rồi nhấn Enter hoặc bấm nút bên dưới">
+
+            <div class="ai-web-menu-actions">
+                <button type="button" class="ai-web-menu-btn primary" onclick="openAIWebInFrame()" title="Nhúng trang web ngay trong khung AI Trợ Lý (có thể kéo rộng/nhỏ khung)">🌐 Mở trong khung (Nhúng)</button>
+                <button type="button" class="ai-web-menu-btn window" onclick="openAIWebInWindow()" title="Mở trong cửa sổ nhỏ gắn kế bên — dùng bình thường 100%">📌 Mở trong Cửa sổ</button>
+                <button type="button" class="ai-web-menu-btn tab" onclick="openAIWebInTab()" title="Mở ở tab mới của trình duyệt">↗ Mở Tab mới</button>
+            </div>
+            <div class="ai-web-menu-actions secondary" id="ai-web-menu-off-row" style="display:none;">
+                <button type="button" class="ai-web-menu-btn off" onclick="toggleAIWebMode(false); closeAIWebMenu();" title="Tắt chế độ nhúng web AI (giữ nguyên chat AI)">✖ Tắt Trang Web AI</button>
             </div>
         </div>
     </div>
@@ -2174,7 +2234,7 @@
             { id: 'ai-capture', cat: 'AI & Lấy code web', icon: '📷', label: 'Chụp vùng kết quả cho AI',     run: () => startAIResultCapture() },
             { id: 'ai-result',  cat: 'AI & Lấy code web', icon: '✨', label: 'Bật/tắt Kết Quả AI',           run: () => toggleAIResultFeature() },
             { id: 'ai-autoinsert', cat: 'AI & Lấy code web', icon: '📥', label: 'Bật/tắt Tự Động Nhập Code AI', run: () => toggleAIAutoInsert() },
-            { id: 'ai-web',     cat: 'AI & Lấy code web', icon: '🌐', label: 'Bật/tắt Trang Web AI (mọi web AI)', run: () => toggleAIWebMode() },
+            { id: 'ai-web',     cat: 'AI & Lấy code web', icon: '🌐', label: 'Mở menu Trang Web AI (mọi web AI)', run: () => openAIWebMenu() },
             { id: 'codeweb',    cat: 'AI & Lấy code web', icon: '👑', label: 'Mở CODE WEB PRO MAX',          run: () => toggleWebUrlModal(true) }
         ];
 
@@ -3555,6 +3615,104 @@ Yêu cầu bắt buộc:
         let aiWebLoadTimer = null;
         let aiWebLoadedOnce = false;
 
+        /* --- Danh sách web AI chọn nhanh trong MENU Trang Web AI --- */
+        const AI_WEB_PRESET_LIST = [
+            { url: 'https://arena.ai/',            label: '🌐 Arena AI' },
+            { url: 'https://chatgpt.com/',         label: '🤖 ChatGPT' },
+            { url: 'https://claude.ai/',           label: '🟣 Claude' },
+            { url: 'https://gemini.google.com/',   label: '🔷 Google Gemini' },
+            { url: 'https://www.perplexity.ai/',   label: '🔎 Perplexity' },
+            { url: 'https://huggingface.co/chat/', label: '🤗 HuggingChat' },
+            { url: 'https://chat.deepseek.com/',   label: '🔵 DeepSeek' },
+            { url: 'https://console.groq.com/',    label: '⚡ Groq' },
+            { url: 'https://chat.mistral.ai/',     label: '💬 Mistral Le Chat' },
+            { url: 'https://poe.com/',             label: '🧠 Poe' },
+            { url: 'https://you.com/',             label: '✨ You.com' },
+            { url: 'https://copilot.microsoft.com/', label: '🪟 Bing Copilot' },
+            { url: 'https://phind.com/',           label: '🔍 Phind' },
+            { url: 'https://www.blackbox.ai/',     label: '⬛ Blackbox AI' },
+            { url: 'https://duckduckgo.com/',      label: '🦆 DuckDuckGo AI' }
+        ];
+
+        function renderAIWebMenuPresets() {
+            const wrap = document.getElementById('ai-web-menu-presets');
+            if (!wrap) return;
+            wrap.innerHTML = AI_WEB_PRESET_LIST.map(p =>
+                `<button type="button" class="ai-web-menu-preset" data-url="${p.url}" onclick="selectAIWebMenuPreset(this)">${p.label}</button>`
+            ).join('');
+        }
+
+        function selectAIWebMenuPreset(btn) {
+            const url = btn.getAttribute('data-url');
+            const input = document.getElementById('ai-web-menu-url');
+            if (input && url) input.value = url;
+            document.querySelectorAll('.ai-web-menu-preset').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            if (input) input.focus();
+        }
+
+        function normalizeAIWebUrl(raw) {
+            let u = (raw || '').trim();
+            if (!u) return '';
+            u = u.replace(/^["']|["']$/g, '');
+            if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+            try { return new URL(u).href; } catch (e) { return ''; }
+        }
+
+        function getAIWebMenuUrl() {
+            const input = document.getElementById('ai-web-menu-url');
+            return normalizeAIWebUrl(input ? input.value : '');
+        }
+
+        function openAIWebMenu() {
+            const modal = document.getElementById('ai-web-menu-modal');
+            if (!modal) { toggleAIWebMode(); return; }
+            renderAIWebMenuPresets();
+            const input = document.getElementById('ai-web-menu-url');
+            const currentUrl = aiWebCurrentUrl();
+            if (input) input.value = currentUrl;
+            document.querySelectorAll('.ai-web-menu-preset').forEach(b => {
+                b.classList.toggle('selected', b.getAttribute('data-url') === currentUrl);
+            });
+            const offRow = document.getElementById('ai-web-menu-off-row');
+            if (offRow) offRow.style.display = isAIWebModeEnabled ? 'flex' : 'none';
+            modal.classList.add('active');
+            setTimeout(() => { if (input) { input.focus(); input.select(); } }, 150);
+        }
+
+        function closeAIWebMenu() {
+            const modal = document.getElementById('ai-web-menu-modal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function openAIWebInFrame() {
+            const url = getAIWebMenuUrl();
+            if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
+            const input = document.getElementById('ai-web-url');
+            if (input) input.value = url;
+            if (!isAIWebModeEnabled) toggleAIWebMode(true);
+            aiWebLoadUrl();
+            closeAIWebMenu();
+            showAutoPasteToast('🌐 Đã mở "' + url + '" trong khung Trang Web AI');
+        }
+
+        function openAIWebInWindow() {
+            const url = getAIWebMenuUrl();
+            if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
+            const input = document.getElementById('ai-web-url');
+            if (input) input.value = url;
+            aiWebDockWindow();
+            closeAIWebMenu();
+        }
+
+        function openAIWebInTab() {
+            const url = getAIWebMenuUrl();
+            if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
+            window.open(url, '_blank');
+            closeAIWebMenu();
+            showAutoPasteToast('↗ Đã mở "' + url + '" trong tab mới');
+        }
+
         function aiWebCurrentUrl() {
             const input = document.getElementById('ai-web-url');
             let u = input ? input.value.trim() : '';
@@ -3681,6 +3839,7 @@ Yêu cầu bắt buộc:
                 const st = document.getElementById('ai-web-status');
                 if (st) st.textContent = '🌐';
             }
+            applyAIWebWidth();
         }
 
         function toggleAIWebMode(enable) {
@@ -3693,6 +3852,116 @@ Yêu cầu bắt buộc:
             showAutoPasteToast(isAIWebModeEnabled
                 ? '🌐 Trang Web AI: ĐÃ BẬT — web AI đang hiển thị trong khung, nếu bị chặn hãy bấm "↗ Tab mới" hoặc "📌 Cửa sổ"!'
                 : '🌐 Trang Web AI: ĐÃ TẮT');
+        }
+
+        /* ==================== CHỈNH ĐỘ RỘNG KHUNG TRANG WEB AI (kéo / nút +− / nhấp đúp reset) ==================== */
+        const AI_WEB_MIN_WIDTH = 260;
+        const AI_WEB_DEFAULT_WIDTH = 340;
+        const AI_WEB_MAX_WIDTH_FACTOR = 0.9; // tối đa 90% chiều ngang màn hình
+        let aiWebWidth = null;               // null = dùng độ rộng mặc định CSS (340px)
+        let aiWebDragState = null;
+
+        function aiWebMaxWidth() {
+            return Math.max(AI_WEB_MIN_WIDTH, Math.round(window.innerWidth * AI_WEB_MAX_WIDTH_FACTOR));
+        }
+
+        function loadAIWebWidth() {
+            try {
+                const raw = localStorage.getItem('codespace_ai_web_width');
+                if (raw) {
+                    const n = parseInt(raw, 10);
+                    if (Number.isFinite(n) && n >= AI_WEB_MIN_WIDTH) aiWebWidth = n;
+                }
+            } catch (e) {}
+        }
+
+        function applyAIWebWidth() {
+            const sidebar = document.getElementById('ai-sidebar');
+            if (!sidebar) return;
+            if (aiWebWidth && sidebar.classList.contains('web-mode') && !sidebar.classList.contains('collapsed')) {
+                sidebar.style.width = Math.min(aiWebWidth, aiWebMaxWidth()) + 'px';
+            } else {
+                sidebar.style.width = '';
+            }
+        }
+
+        function relayoutAfterResize() {
+            setTimeout(() => { if (editors[currentTab]) editors[currentTab].layout(); }, 60);
+        }
+
+        function setAIWebWidth(px) {
+            aiWebWidth = Math.max(AI_WEB_MIN_WIDTH, Math.min(Math.round(px), aiWebMaxWidth()));
+            applyAIWebWidth();
+            try { safeSetLocalStorage('codespace_ai_web_width', String(aiWebWidth)); } catch (e) {}
+            relayoutAfterResize();
+            showAutoPasteToast('↔ Khung Trang Web AI: ' + aiWebWidth + 'px');
+        }
+
+        function nudgeAIWebWidth(delta) {
+            const sidebar = document.getElementById('ai-sidebar');
+            const current = aiWebWidth
+                || (sidebar ? Math.round(sidebar.getBoundingClientRect().width) : AI_WEB_DEFAULT_WIDTH)
+                || AI_WEB_DEFAULT_WIDTH;
+            setAIWebWidth(current + delta);
+        }
+
+        function resetAIWebWidth() {
+            aiWebWidth = null;
+            try { localStorage.removeItem('codespace_ai_web_width'); } catch (e) {}
+            applyAIWebWidth();
+            relayoutAfterResize();
+            showAutoPasteToast('↔ Đã đặt lại độ rộng mặc định (' + AI_WEB_DEFAULT_WIDTH + 'px) cho Trang Web AI');
+        }
+
+        function initAIWebResizer() {
+            const handle = document.getElementById('ai-web-resizer');
+            const sidebar = document.getElementById('ai-sidebar');
+            if (!handle || !sidebar) return;
+
+            const startDrag = (clientX) => {
+                if (!sidebar.classList.contains('web-mode') || sidebar.classList.contains('collapsed')) return;
+                aiWebDragState = {
+                    startX: clientX,
+                    startWidth: Math.round(sidebar.getBoundingClientRect().width)
+                };
+                handle.classList.add('dragging');
+                sidebar.classList.add('dragging-width');
+                document.body.style.userSelect = 'none';
+                document.body.style.cursor = 'col-resize';
+                const frame = document.getElementById('ai-web-frame');
+                if (frame) frame.style.pointerEvents = 'none';
+            };
+
+            const moveDrag = (clientX) => {
+                if (!aiWebDragState) return;
+                const delta = clientX - aiWebDragState.startX;
+                const newWidth = aiWebDragState.startWidth + delta;
+                aiWebWidth = Math.max(AI_WEB_MIN_WIDTH, Math.min(Math.round(newWidth), aiWebMaxWidth()));
+                sidebar.style.width = aiWebWidth + 'px';
+            };
+
+            const endDrag = () => {
+                if (!aiWebDragState) return;
+                aiWebDragState = null;
+                handle.classList.remove('dragging');
+                sidebar.classList.remove('dragging-width');
+                document.body.style.userSelect = '';
+                document.body.style.cursor = '';
+                const frame = document.getElementById('ai-web-frame');
+                if (frame) frame.style.pointerEvents = '';
+                try { safeSetLocalStorage('codespace_ai_web_width', String(aiWebWidth)); } catch (e) {}
+                relayoutAfterResize();
+                showAutoPasteToast('↔ Khung Trang Web AI: ' + aiWebWidth + 'px');
+            };
+
+            handle.addEventListener('mousedown', function(e) { e.preventDefault(); startDrag(e.clientX); });
+            document.addEventListener('mousemove', function(e) { if (aiWebDragState) moveDrag(e.clientX); });
+            document.addEventListener('mouseup', endDrag);
+            handle.addEventListener('touchstart', function(e) { e.preventDefault(); startDrag(e.touches[0].clientX); }, { passive: false });
+            document.addEventListener('touchmove', function(e) { if (aiWebDragState && e.touches.length) moveDrag(e.touches[0].clientX); }, { passive: false });
+            document.addEventListener('touchend', endDrag);
+
+            handle.addEventListener('dblclick', resetAIWebWidth);
         }
 
         function buildAIAssistantModeInstructions() {
@@ -6414,8 +6683,10 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             isAIAutoInsertEnabled = localStorage.getItem('codespace_ai_autoinsert_enabled') === 'true';
             updateAIAutoInsertUI();
             isAIWebModeEnabled = localStorage.getItem('codespace_ai_web_mode_enabled') === 'true';
+            loadAIWebWidth();
             updateAIWebModeUI();
             initAIWebFrameEvents();
+            initAIWebResizer();
 
             document.getElementById('select-ads').value = adsLocation;
             document.getElementById('select-ads-size').value = adsSize;
