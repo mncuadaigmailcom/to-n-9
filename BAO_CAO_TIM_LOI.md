@@ -1,89 +1,132 @@
-# Báo cáo phân tích & tìm lỗi — `to-n-9/index.html` (cập nhật)
+# Báo cáo phân tích & tìm lỗi — `to-n-9/index.html` (đã sửa toàn bộ ✅)
 
-> Cập nhật sau khi thêm: (1) kéo chỉnh độ rộng khung Trang Web AI, (2) menu mở Trang Web AI (chọn AI / nhập link / mở khung–cửa sổ–tab).
+> Cập nhật lần cuối: **tất cả 6 lỗi đã được sửa và kiểm chứng** (xem mục 3). Mục 2 giữ lại mô tả lỗi gốc để đối chiếu.
+
+---
 
 ## 1. Tổng quan
 
-- **Kích thước hiện tại:** 6.839 dòng, ~395 KB.
-- **Kiểm tra tự động đã chạy:**
-  - `node --check` → cú pháp JS **hợp lệ** ✅
+- **Kích thước hiện tại:** ~6.850 dòng, ~395 KB.
+- **Kiểm tra tự động sau khi sửa:**
+  - `node --check` script chính → cú pháp JS **hợp lệ** ✅
   - Không có `id` trùng lặp (206/206 id duy nhất) ✅
-  - HTML cân bằng thẻ: `<div>` 209/209, `<select>` 12/12 ✅
+  - HTML cân bằng thẻ: `<div>` 263/263, `<select>` 12/12, `<span>` 48/48 ✅
   - Mọi hàm gọi trong `onclick/onchange/onkeypress...` đều tồn tại ✅
-  - `getElementById(...)` trỏ tới phần tử tồn tại (3 id "thiếu" là phần tử tạo động lúc chạy: `copy-toast`, `python-output`, `cpp-output` — không phải lỗi) ✅
-
-**Kết luận:** các thay đổi mới (menu + kéo khung) **không gây lỗi cú pháp/hỏng DOM**. Các lỗi cũ tìm được trước đó **vẫn còn nguyên** (chưa sửa) — xem mục 2.
+  - `getElementById(...)` trỏ tới phần tử tồn tại ✅
 
 ---
 
-## 2. Các lỗi vẫn còn tồn tại (số dòng đã cập nhật)
+## 2. Các lỗi đã tìm được (trạng thái: ĐÃ SỬA)
 
-### 🔴 Lỗi 1 (CAO) — `swRegisterScript` có `<\/script>` bị nhân đôi dấu `\` (dòng 5795)
-
-```js
-const swRegisterScript = `<script>... }); }<\\/script>`;
-```
-
-- Có **2 dấu `\`**, nên giá trị thật là `<\/script>` (còn nguyên `\`) → trình duyệt **không hiểu đó là thẻ đóng**.
-- Chèn vào `index.html` của gói PWA (dòng 5796) → thẻ `<script>` đăng ký service worker **không bao giờ đóng**, phần còn lại trang bị nuốt vào script → **gói PWA tạo ra bị vỡ**.
-- **Sửa:** chỉ giữ **1 dấu `\`**: `<\/script>` (giống dòng 2132, 5028...).
-
-### 🔴 Lỗi 2 (CAO) — Regex tách khối code AI lấy nhầm khối đầu tiên (dòng 3450–3452)
+### 🔴 Lỗi 1 (CAO) — `swRegisterScript` thừa dấu `\` trước `/script` (dòng 5795 cũ)
 
 ```js
-const htmlMatch = text.match(/```(?:html)?\s*([\s\S]*?)```/i);
-const cssMatch  = text.match(/```(?:css)?\s*([\s\S]*?)```/i);
-const jsMatch   = text.match(/```(?:javascript|js)?\s*([\s\S]*?)```/i);
+// TRƯỚC: }); }<\\/script>`;   (2 dấu \ → giá trị string là "<\/script>" còn nguyên backslash)
+// SAU : }); }<\/script>`;    (1 dấu \ → giá trị string là "</script>" — thẻ đóng thật)
 ```
 
-- Nhóm ngôn ngữ là **tùy chọn**, nên cả 3 `match()` đều bắt **khối code fence đầu tiên** (đã kiểm chứng: tab CSS & JS nhận đúng nội dung khối HTML).
+- Giá trị string cũ chèn vào `index.html` của gói PWA tạo ra chuỗi `<\\/script>` → trình duyệt **không hiểu là thẻ đóng** → thẻ `<script>` đăng ký service worker không bao giờ đóng, phần còn lại trang bị nuốt vào script → **gói PWA bị vỡ**.
+- **Đã sửa:** giữ đúng 1 dấu `\` (giống các nơi khác trong file: dòng CDN_PACKAGES, `buildFullSource`...).
+- **Kiểm chứng:** chạy Node lấy giá trị string thật → kết thúc bằng `</script>` không còn backslash. ✅
+
+### 🔴 Lỗi 2 (CAO) — Regex tách khối code AI lấy nhầm khối đầu tiên (dòng 3450 cũ)
+
+```js
+// TRƯỚC: 3 regex riêng, nhóm ngôn ngữ tùy chọn → cả 3 đều bắt khối fence ĐẦU TIÊN
+// (đã kiểm chứng: tab CSS & JS nhận đúng nội dung khối HTML)
+```
+
 - **Hậu quả:** "lấy code web bằng AI" điền sai code vào 3 tab.
-- **Sửa:** quét toàn bộ khối bằng regex có cờ `g` rồi phân loại theo ngôn ngữ thật.
+- **Đã sửa:** quét toàn bộ khối fence bằng một regex có cờ `g`, phân loại theo ngôn ngữ thật (`html/htm/xml`, `css`, `javascript/js`); khối **không gắn nhãn** được ưu tiên cho tab HTML (giữ hành vi cũ).
+- **Kiểm chứng:** test với output AI 3 khối `html + css + javascript` → mỗi tab nhận đúng nội dung; khối không nhãn → vào tab HTML. ✅
 
-### 🟠 Lỗi 3 (TB) — `downloadSavedProject` tạo HTML thừa khối script rỗng + title không escape đủ (dòng 2132)
+### 🟠 Lỗi 3 (TB) — `downloadSavedProject` tạo file bị lỗi (dòng 2132 cũ)
 
-- File tải từ "bản lưu" chứa **khối `<script></script>` rỗng thừa**.
-- `<title>` chỉ loại bỏ `<` (không escape `&`, `>`, `"`).
-- `${d.js}` nhúng thô vào `<script>` — nếu JS người dùng chứa `</script>` thì file bị vỡ.
+- **Trước:** file tải về chứa khối `<script></script>` rỗng thừa; `<title>` chỉ bỏ `<` (không escape `&`, `>`, `"`); `${d.js}` nhúng thô → JS chứa `</script>` làm vỡ file.
+- **Đã sửa:** template gọn 1 dòng; title dùng `escapeHtml()` (escape đủ `& < > " '`); JS người dùng được thay `</script` → `<\/script` (chuẩn chống phá thẻ).
+- **Kiểm chứng:** chạy Node với tên bản lưu `Demo & <x> "q"` và JS chứa `</script>` → output title đã escape, script đóng đúng, không còn khối rỗng. ✅
 
-### 🟡 Lỗi 4 (THẤP) — Tên biến quảng cáo video ngược nghĩa (dòng 6359–6360)
+### 🟡 Lỗi 4 (THẤP) — Tên giá trị quảng cáo video ngược nghĩa (dòng 6359 cũ)
 
-```js
-const totalTime = (adsLocation === 'video-skippable') ? 5 : 60;
-const skipAfter = (adsLocation === 'video-skippable') ? 5 : 15;
-```
-- `video-skippable` thực chất là **bắt buộc xem hết, không bỏ qua được**; `video-non-skippable` lại **bỏ qua được sau 15s** → tên ngược nghĩa, dễ nhầm khi bảo trì.
+- **Trước:** `video-skippable` lại là **bắt buộc xem hết 5s**; `video-non-skippable` lại **bỏ qua được sau 15s** → tên ngược nghĩa, dễ nhầm khi bảo trì.
+- **Đã sửa:** đổi tên giá trị cho đúng nghĩa — `video-skippable` → **`video-forced`** (5s, không bỏ qua), `video-non-skippable` → **`video-skippable`** (60s, bỏ qua sau 15s). Cập nhật toàn bộ điều kiện, comment, nhãn UI; **không đổi hành vi**.
+- **Di trú:** giá trị cũ lưu trong `localStorage` được ánh xạ tự động khi tải trang (`video-skippable` cũ → `video-forced`, `video-non-skippable` cũ → `video-skippable`).
+- **Kiểm chứng:** mô phỏng 2 chế độ → `video-forced`: 5s/KHÔNG THỂ BỎ QUA; `video-skippable`: 60s/CÓ THỂ BỎ QUA SAU 15s. ✅
 
-### 🟡 Lỗi 5 (THẤP) — `runCode()` ép `setMode('full-view')` mỗi lần chạy khi bật quảng cáo video (dòng 6655)
+### 🟡 Lỗi 5 (THẤP) — `runCode()` ép `setMode('full-view')` mỗi lần chạy (dòng 6655 cũ)
 
-- Mỗi lần auto-run (gõ code) lại kéo sang chế độ "Xem Full Web", phá bố cục người dùng đang dùng.
-- **Sửa:** chỉ chuyển `full-view` một lần khi *bật* chế độ quảng cáo.
+- **Trước:** mỗi lần auto-run (gõ code) lại kéo sang chế độ "Xem Full Web", phá bố cục đang dùng.
+- **Đã sửa:** bỏ ép buộc trong `runCode()`; chỉ chuyển `full-view` **một lần** khi (a) người dùng bật chế độ quảng cáo video trong cài đặt, và (b) khi tải trang nếu đang bật chế độ video (giữ đúng hành vi cũ lúc khởi động).
+- **Kiểm chứng:** `runCode()` không còn gọi `setMode`; `onAdsLocationChange` chuyển full-view đúng 1 lần. ✅
 
-### 🟡 Lỗi 6 (THẤP) — `querySelector('option[value="..."]')` chưa escape dấu `'` (dòng 3774, 3832)
+### 🟡 Lỗi 6 (THẤP) — `querySelector('option[value="..."]')` chưa escape dấu `'` (dòng 3774, 3832 cũ)
 
-- URL chứa dấu nháy đơn sẽ làm hỏng selector → ném `DOMException` (hiếm gặp).
-- **Sửa:** dùng `CSS.escape(url)` hoặc duyệt `sel.options`.
-
----
-
-## 3. Ghi chú nhỏ về code MỚI thêm (không phải lỗi nghiêm trọng)
-
-1. **Mở web bằng "Cửa sổ" / "Tab mới" không ghi nhớ URL lần cuối** (`aiWebRememberLastUrl` chỉ được gọi trong `aiWebLoadUrl`). Nghĩa là ô link trong khung nhúng chỉ cập nhật khi "Mở trong khung". → chỉ là sự không nhất quán nhỏ, không ảnh hưởng hoạt động.
-2. **Menu Trang Web AI không đóng bằng phím Escape** — handler Escape toàn cục hiện chỉ xử lý hộp thoại xác nhận/nhập. Bấm ra ngoài hoặc nút ✖ vẫn đóng bình thường.
-3. **`openAIWebInFrame()`** gọi `toggleAIWebMode(true)` rồi `aiWebLoadUrl()` → iframe bị set `src` 2 lần (thừa nhưng vô hại).
-4. `normalizeAIWebUrl()` đã loại bỏ được các chuỗi `javascript:...`, `file:...` (vì `new URL('https://javascript:...')` bị lỗi cổng không hợp lệ) — đủ an toàn cho `window.open`.
+- **Trước:** URL chứa dấu nháy đơn làm hỏng selector → ném `DOMException` (hiếm gặp).
+- **Đã sửa:** thêm helper `aiWebSetPresetSelect(url)` duyệt `sel.options` so sánh giá trị trực tiếp — an toàn với mọi ký tự URL (kể cả `'` và `"`).
+- **Kiểm chứng:** test URL `https://x.com/a'b` → khớp đúng option; URL lạ → xóa chọn. ✅
 
 ---
 
-## 4. Tóm tắt ưu tiên sửa
+## 3. Tóm tắt thay đổi
 
-| # | Dòng | Mức độ | Mô tả ngắn |
-|---|------|--------|-----------|
-| 1 | 5795 | 🔴 Cao | `<\/script>` gấp đôi `\` → gói PWA bị vỡ |
-| 2 | 3450–3452 | 🔴 Cao | Regex tách khối AI lấy nhầm khối đầu tiên |
-| 3 | 2132 | 🟠 TB | File tải bản lưu có script rỗng thừa, title không escape đủ |
-| 4 | 6359–6360 | 🟡 Thấp | Tên `video-skippable`/`video-non-skippable` ngược nghĩa |
-| 5 | 6655 | 🟡 Thấp | `runCode()` ép `full-view` mỗi lần chạy khi bật quảng cáo video |
-| 6 | 3774, 3832 | 🟡 Thấp | Selector `option[value="..."]` chưa escape `'` |
+| # | Mức độ | Mô tả ngắn | Trạng thái |
+|---|--------|-----------|-----------|
+| 1 | 🔴 Cao | `swRegisterScript` thừa `\` → gói PWA vỡ | ✅ Đã sửa |
+| 2 | 🔴 Cao | Regex tách khối AI lấy nhầm khối đầu tiên | ✅ Đã sửa |
+| 3 | 🟠 TB | File tải bản lưu: script rỗng thừa, title không escape, JS thô | ✅ Đã sửa |
+| 4 | 🟡 Thấp | Tên `video-skippable`/`video-non-skippable` ngược nghĩa | ✅ Đã sửa (đổi tên + di trú localStorage) |
+| 5 | 🟡 Thấp | `runCode()` ép `full-view` mỗi lần chạy | ✅ Đã sửa |
+| 6 | 🟡 Thấp | Selector `option[value="..."]` chưa escape `'` | ✅ Đã sửa |
 
-*(Ngoài ra: API key AI & GitHub token vẫn lưu plain-text trong `localStorage`; `shareCode()` nhét toàn bộ code vào URL dễ vượt giới hạn độ dài — lưu ý bảo mật.)*
+---
+
+## 4. Ghi chú còn lại (không phải lỗi nghiêm trọng, chưa xử lý)
+
+1. **API key AI & GitHub token** vẫn lưu plain-text trong `localStorage` — lưu ý bảo mật.
+2. **`shareCode()`** nhét toàn bộ code vào URL — dễ vượt giới hạn độ dài URL.
+3. **Menu Trang Web AI** không đóng bằng phím Escape (bấm ra ngoài / nút ✖ vẫn đóng được).
+4. **Mở web bằng "Cửa sổ"/"Tab mới"** không ghi nhớ URL lần cuối vào ô link (chỉ "Mở trong khung" ghi nhớ) — không nhất quán nhỏ, không ảnh hưởng hoạt động.
+5. `openAIWebFrameInFrame()` gán `src` iframe 2 lần (thừa nhưng vô hại).
+
+---
+
+## 5. Tối ưu hiệu năng (thêm mới — không thay đổi hành vi/tính năng)
+
+| # | Khu vực | Vấn đề | Tối ưu đã làm |
+|---|---------|--------|---------------|
+| 1 | Khởi động | Tải **pyodide (~2.5MB) không dùng ở cấp ứng dụng** + `tesseract.js`/`html2canvas` tải sẵn từ đầu → trang mở rất chậm, bị chặn parse HTML | Bỏ hẳn pyodide ở app (iframe tự nạp khi chạy Python); `tesseract`/`html2canvas` → **lazy-load** đúng lúc dùng (OCR / chụp ảnh) qua `loadScriptOnce()`; thêm `defer` cho JSZip + Monaco loader để không chặn dựng trang |
+| 2 | Gõ code | `updateHttpsHighlighting()` quét toàn bộ code **mỗi keystroke** | Debounce 250ms **theo từng editor** (Map theo `getId()`) — highlight vẫn đủ, chỉ bớt việc quét liên tục |
+| 3 | Gõ code | `showSaveStatus()` tạo timeout mới mỗi phím (churn timer) | Dùng 1 timer dùng chung, `clearTimeout` trước khi set mới |
+| 4 | Chạy code | `runCode()` gán lại `srcdoc` kể cả khi source không đổi → iframe re-render thừa | Chỉ gán khi `viewer.srcdoc !== source` (không đổi hành vi, đỡ re-render lặp) |
+| 5 | Console | Bảng log phình vô hạn + `innerHTML.includes` quét toàn bộ mỗi dòng log → chậm dần O(n²) | Giữ tối đa **1500 dòng** (xóa dòng đầu khi vượt); kiểm tra dòng "Hệ thống..." qua `firstChild` thay vì quét toàn DOM |
+| 6 | Kéo khung AI web | `mousemove` set `style.width` mỗi event → nhiều layout/frame thừa | Throttle bằng `requestAnimationFrame` (chỉ 1 lần/frame), `endDrag` huỷ rAF đang chờ |
+| 7 | Log Boss Bot | `textContent +=` không giới hạn → chuỗi phình vô hạn | Buffer có giới hạn (~20KB, giữ 12KB cuối); tự đồng bộ nếu nơi khác ghi đè trực tiếp |
+| 8 | Gộp tính năng | Ô tìm kiếm render lại toàn bộ danh sách mỗi keystroke | Debounce 150ms qua `scheduleComboFeaturePickerRender()` |
+
+**Kiểm chứng (đều PASS):**
+- `node --check` hợp lệ; 206 id duy nhất; thẻ cân bằng (`div` 263/263, `select` 12/12, `span` 48/48, `iframe` 2/2); mọi handler & `getElementById` tồn tại.
+- Mô phỏng Node: `runCode` chỉ gán srcdoc khi khác (3 lần gọi → 1 lần gán); `webUrlLog` rút gọn đúng (~12.350 ký tự sau 3000 dòng) + đồng bộ khi bị ghi đè ngoài; console giữ đúng 1500 dòng; lazy-loader chỉ chèn 1 script, lỗi thì reject và tải lại được; highlight debounce gõ liên tục chỉ chạy 1 lần/250ms/editor.
+- Tính năng giữ nguyên: pyodide & JSCPP vẫn được nhúng trong trang kết quả, JSZip vẫn hoạt động, OCR/chụp ảnh có fallback thông báo khi không tải được thư viện.
+
+---
+
+## 6. Sửa "AI Trợ Lý bị lỗi" (không trả lời dù key đúng — đặc biệt trên điện thoại)
+
+**Nguyên nhân chẩn đoán được:**
+1. **Gemini API chặn theo khu vực** — Việt Nam không nằm trong danh sách quốc gia được hỗ trợ → API trả 403 `User location is not supported` dù key đúng.
+2. **CORS** — OpenAI / DeepSeek / xAI không cho trình duyệt gọi thẳng (không gửi `Access-Control-Allow-Origin`) → `Failed to fetch`.
+3. **Bàn phím điện thoại** — `onkeypress` (cũ, đã deprecated) nhiều trình duyệt di động không kích hoạt → bấm Enter không gửi.
+
+**Đã sửa:**
+| Thay đổi | Chi tiết |
+|----------|----------|
+| 🔌 **Nút "Kiểm tra kết nối"** trong modal 🔑 Key | Gửi 1 câu thử tới provider đang nhập → hiện "✅ Kết nối thành công" hoặc lỗi chi tiết — biết ngay key/CORS có vấn đề |
+| 🌐 **CORS Proxy cho từng key** (ô mới "CORS Proxy (tùy chọn)") | Hỗ trợ `https://corsproxy.io/?url=` hoặc dạng `{url}`. Mọi request AI đi qua proxy khi cấu hình |
+| 🔄 **Tự fallback qua proxy** | Nếu gọi trực tiếp fail (CORS/mạng) và key có proxy → tự thử lại qua proxy |
+| ⏰ **Timeout 60s** mỗi request | Không treo vô hạn; báo rõ "Quá thời gian chờ" |
+| 💡 **Thông báo lỗi rõ ràng** | Phân biệt: CORS/mạng → hướng dẫn điền proxy hoặc dùng OpenRouter/Groq/Claude; Gemini chặn vùng → cảnh báo "Nếu bạn ở Việt Nam..."; thiếu key → nút "🔑 Thêm / Chọn Key ngay" mở thẳng modal |
+| 📱 **Enter trên điện thoại** | Đổi toàn bộ `onkeypress` → `onkeydown` (6 ô input: chat AI, URL web, menu web, lưu bản lưu, prompt, lấy code web) |
+| 📝 **Ghi chú trong modal key** | Hướng dẫn ngay trong form: nên dùng OpenRouter/Groq/Claude hoặc điền CORS Proxy |
+
+**Kiểm chứng (jsdom + fetch mock, đều PASS):**
+- Chat trả lời đúng; lỗi CORS → thông báo có hướng dẫn (không "❌ ❌" kép); Gemini 403 vùng → có hint Việt Nam; có proxy + lỗi trực tiếp → tự gọi proxy thành công; Enter (keydown) gửi tin nhắn; nút kiểm tra kết nối hiện kết quả đúng; `node --check` PASS; id duy nhất, thẻ cân bằng.
