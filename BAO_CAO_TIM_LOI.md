@@ -146,6 +146,6 @@ Các thay đổi dưới đây giữ nguyên các tính năng hiện có và ch�
 7. **PWA escape tên app:** tên app trong `<title>` và meta tag được escape đầy đủ.
 8. **Ghi nhớ Auto-run:** trạng thái Tự Chạy được khôi phục sau khi reload.
 9. **Mở tab ngoài an toàn hơn:** các nút mở AI Web dùng `noopener,noreferrer`.
-10. **Mô phỏng thiết bị khi xem preview:** **Web Full** hiển thị khung trình duyệt máy tính với thanh điều khiển và viewport đầy đủ; **Khung ĐT** hiển thị vỏ điện thoại hoàn chỉnh hơn với notch/camera, nút cạnh, đồng hồ, biểu tượng sóng/Wi-Fi/pin, thanh trình duyệt mobile và thanh Home. Iframe `#viewer` vẫn giữ nguyên để không ảnh hưởng chạy code, log, cuộn hoặc chụp kết quả.
+10. **Mô phỏng thiết bị khi xem preview:** **Web Full** hiển thị khung trình duyệt máy tính với thanh điều khiển và viewport đầy đủ; **Khung ĐT** hiển thị vỏ điện thoại hoàn chỉnh hơn với viền mảnh, bóng đổ nhẹ, notch/camera, nút cạnh, đồng hồ, biểu tượng sóng/Wi-Fi/pin, thanh trình duyệt mobile và thanh Home. Iframe `#viewer` vẫn giữ nguyên để không ảnh hưởng chạy code, log, cuộn hoặc chụp kết quả.
 
 **Kiểm chứng sau thay đổi:** `node --check` script chính PASS, `git diff --check` PASS, 250 ID vẫn duy nhất; không xóa tính năng hiện có, chỉ bổ sung giao diện mô phỏng thiết bị.
