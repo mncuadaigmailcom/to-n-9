@@ -913,10 +913,57 @@
         .editor-container { flex: 1; display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
         .editor-container.active { display: block; }
 
-        .iframe-container { flex: 1; position: relative; background: white; display: flex; justify-content: center; align-items: stretch; overflow: hidden; transition: background 0.3s; }
+        .iframe-container { flex: 1; position: relative; background: #0f141b; display: flex; justify-content: center; align-items: stretch; overflow: hidden; transition: background 0.3s; }
         iframe { width: 100%; height: 100%; border: none; background: white; transition: all 0.3s ease; overflow: auto !important; -webkit-overflow-scrolling: touch; }
-        .iframe-container.preview-mobile { background-color: #29292e; justify-content: center; align-items: center; }
-        .iframe-container.preview-mobile iframe { width: 375px; height: 100%; display: block; box-shadow: 0 0 20px rgba(0,0,0,0.6); border-left: 1px solid #424242; border-right: 1px solid #424242; }
+
+        /* Mô phỏng thiết bị cho hai chế độ Web Full / Khung ĐT. Iframe viewer
+           vẫn giữ nguyên id và document để không ảnh hưởng chạy code, log hay chụp ảnh. */
+        .preview-device-shell { position: relative; z-index: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
+        .preview-device-shell.desktop { width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; border: 1px solid #334155; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+        .preview-browser-chrome { flex: 0 0 38px; height: 38px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: linear-gradient(180deg, #202936, #151c26); border-bottom: 1px solid #334155; color: #94a3b8; font: 12px/1 sans-serif; user-select: none; }
+        .preview-window-controls { display: flex; gap: 6px; flex: 0 0 auto; }
+        .preview-window-controls i { display: block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
+        .preview-window-controls i:nth-child(2) { background: #f59e0b; }
+        .preview-window-controls i:nth-child(3) { background: #22c55e; }
+        .preview-browser-address { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; height: 24px; padding: 0 10px; border: 1px solid #334155; border-radius: 6px; background: #0f172a; color: #cbd5e1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .preview-browser-address strong { color: #22c55e; font-size: 11px; }
+        .preview-browser-actions { flex: 0 0 auto; color: #64748b; font-size: 16px; letter-spacing: 2px; }
+        .preview-device-viewport { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
+        .preview-device-viewport iframe { display: block; width: 100%; height: 100%; border: none; box-shadow: none; }
+
+        .iframe-container.preview-mobile { background: radial-gradient(circle at center, #414b59 0%, #1a2028 72%); justify-content: center; align-items: center; padding: 8px; }
+        .preview-device-shell.mobile { width: min(390px, calc(100% - 4px)); height: min(780px, calc(100% - 4px)); flex: 0 1 auto; border: 4px solid #303a47; border-radius: 32px; box-shadow: 0 10px 26px rgba(0,0,0,0.46), inset 0 0 0 1px rgba(255,255,255,0.09); background: #080b10; }
+        .preview-device-shell.mobile::before { content: ''; position: absolute; z-index: 4; top: 0; left: 50%; width: 112px; height: 23px; transform: translateX(-50%); border-radius: 0 0 14px 14px; background: #080b10; box-shadow: 0 1px 0 rgba(255,255,255,0.04); pointer-events: none; }
+        .preview-device-shell.mobile::after { content: ''; position: absolute; z-index: 5; left: 50%; bottom: 5px; width: 104px; height: 3px; transform: translateX(-50%); border-radius: 3px; background: rgba(255,255,255,0.78); box-shadow: 0 0 3px rgba(255,255,255,0.14); pointer-events: none; }
+        .preview-phone-buttons { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
+        .preview-phone-buttons i { position: absolute; display: block; width: 2px; border-radius: 2px; background: #667384; opacity: 0.58; box-shadow: none; }
+        .preview-phone-buttons i:nth-child(1) { right: -1px; top: 104px; height: 58px; }
+        .preview-phone-buttons i:nth-child(2) { left: -1px; top: 96px; height: 36px; }
+        .preview-phone-buttons i:nth-child(3) { left: -1px; top: 144px; height: 50px; }
+        .preview-phone-camera { position: absolute; z-index: 5; top: 8px; left: 50%; width: 8px; height: 8px; transform: translateX(27px); border-radius: 50%; background: #1b2735; border: 2px solid #0a0d12; box-shadow: 0 0 0 1px rgba(125,211,252,0.22), inset 0 0 3px rgba(56,189,248,0.65); pointer-events: none; }
+        .preview-mobile-status { display: flex; align-items: center; justify-content: space-between; flex: 0 0 30px; height: 30px; padding: 6px 16px 3px; background: #080b10; color: #f8fafc; font: 700 10px/1 sans-serif; letter-spacing: 0.2px; user-select: none; }
+        .preview-mobile-status-icons { display: flex; align-items: center; gap: 6px; height: 12px; color: #f8fafc; }
+        .preview-mobile-status-icons i { position: relative; display: block; flex: 0 0 auto; }
+        .mobile-signal { width: 14px; height: 10px; }
+        .mobile-signal::before { content: ''; position: absolute; left: 0; bottom: 0; width: 3px; height: 4px; border-radius: 1px 1px 0 0; background: #f8fafc; box-shadow: 4px -2px 0 #f8fafc, 8px -4px 0 #f8fafc, 12px -6px 0 #f8fafc; }
+        .mobile-wifi { width: 14px; height: 10px; border: 2px solid transparent; border-top-color: #f8fafc; border-radius: 50% 50% 0 0; transform: translateY(2px); }
+        .mobile-wifi::before { content: ''; position: absolute; left: 2px; top: -1px; width: 6px; height: 5px; border: 2px solid transparent; border-top-color: #f8fafc; border-radius: 50% 50% 0 0; }
+        .mobile-wifi::after { content: ''; position: absolute; left: 5px; top: 3px; width: 3px; height: 3px; border-radius: 50%; background: #f8fafc; }
+        .mobile-battery { width: 18px; height: 9px; border: 1px solid #f8fafc; border-radius: 2px; }
+        .mobile-battery::before { content: ''; position: absolute; left: 2px; top: 2px; width: 11px; height: 3px; border-radius: 1px; background: #f8fafc; }
+        .mobile-battery::after { content: ''; position: absolute; right: -3px; top: 2px; width: 2px; height: 3px; border-radius: 0 1px 1px 0; background: #f8fafc; }
+        .preview-mobile-browser-bar { display: flex; align-items: center; justify-content: space-around; flex: 0 0 34px; height: 34px; padding: 0 24px 3px; background: rgba(248,250,252,0.97); border-top: 1px solid #cbd5e1; color: #475569; font: 22px/1 sans-serif; user-select: none; }
+        .preview-mobile-browser-bar span { min-width: 24px; text-align: center; }
+        .preview-mobile-browser-bar span:first-child, .preview-mobile-browser-bar span:nth-child(2) { color: #94a3b8; }
+        .preview-mobile-browser-bar .mobile-browser-tabs { font-size: 17px; font-weight: 700; }
+        .preview-device-shell.desktop .preview-mobile-status,
+        .preview-device-shell.desktop .preview-mobile-browser-bar,
+        .preview-device-shell.desktop .preview-phone-buttons,
+        .preview-device-shell.desktop .preview-phone-camera { display: none; }
+        .preview-device-shell.mobile .preview-browser-chrome { display: none; }
+        .preview-device-shell.mobile .preview-device-viewport { border-radius: 0; }
+        .preview-device-shell.mobile .preview-device-viewport iframe { width: 100%; height: 100%; }
+        .iframe-container.preview-desktop { background: #0f141b; }
 
         .resizer { background: #1a1a1e; z-index: 10; transition: background 0.2s; border: 1px solid #29292e; }
         .resizer:hover, .resizer.dragging { background: #00b0ff; }
@@ -1100,8 +1147,8 @@
         <button id="btn-layout-mobile" class="btn-mode-mobile" onclick="changeLayoutMode('mobile')">📱 Bố cục Mobile</button>
         <span class="divider">|</span>
 
-        <button id="btn-preview-pc" class="btn-device-preview btn-active" onclick="setPreviewDevice('pc')">🌐 Web Full</button>
-        <button id="btn-preview-mobile" class="btn-device-preview" onclick="setPreviewDevice('mobile')">📱 Khung ĐT</button>
+        <button id="btn-preview-pc" class="btn-device-preview btn-active" onclick="setPreviewDevice('pc')" title="Mô phỏng màn hình máy tính khi truy cập website">🌐 Web Full</button>
+        <button id="btn-preview-mobile" class="btn-device-preview" onclick="setPreviewDevice('mobile')" title="Mô phỏng màn hình điện thoại và viewport mobile">📱 Khung ĐT</button>
         <span class="divider">|</span>
 
         <button id="mode-btn-split" class="btn-active" onclick="setMode('')">🔲 Chia đôi</button>
@@ -1190,10 +1237,10 @@
         <input type="file" id="folder-input" webkitdirectory directory multiple style="display:none;" onchange="importFile(this)">
         <button id="btn-open-settings" onclick="toggleSettingsModal(true)">⚙️ Cài Đặt</button>
 
-        <button id="btn-run-code" class="btn-run" onclick="runCode()">Chạy ▶</button>
+        <button id="btn-run-code" class="btn-run" onclick="runCode(true)">Chạy ▶</button>
         <button id="btn-toggle-ai-result" class="btn-ai-result" onclick="toggleAIResultFeature()" title="Khi bật: nút Chạy sẽ gửi code cho AI chuyển đổi Python/C++ thành HTML/JS thật.">🤖 Kết Quả AI: TẮT</button>
         <button id="btn-hide-toolbar" class="btn-toggle-ui" onclick="toggleToolbar(false)" style="background: #b71c1c;">🚫 Ẩn</button>
-        <div id="save-indicator" class="autosave-status">Đã lưu tự động</div>
+        <div id="save-indicator" class="autosave-status">Tự lưu khi thoát trang</div>
     </div>
 
     <!-- THANH TÌM KIẾM & THAY THẾ -->
@@ -1278,7 +1325,7 @@
                     <button type="button" class="ai-web-topbtn ai-web-wbtn" onclick="nudgeAIWebWidth(-70)" title="Thu nhỏ khung Trang Web AI (bớt 70px)">−</button>
                     <button type="button" class="ai-web-topbtn ai-web-wbtn" onclick="nudgeAIWebWidth(70)" title="Phóng to khung Trang Web AI (thêm 70px)">+</button>
                     <button type="button" class="ai-web-topbtn" onclick="aiWebReload()" title="Tải lại trang">🔄</button>
-                    <button type="button" class="btn-ai-web-open" onclick="window.open(aiWebCurrentUrl(),'_blank')" title="Mở trang ở tab mới — dùng bình thường 100%">↗ Tab mới</button>
+                    <button type="button" class="btn-ai-web-open" onclick="window.open(aiWebCurrentUrl(),'_blank','noopener,noreferrer')" title="Mở trang ở tab mới — dùng bình thường 100%">↗ Tab mới</button>
                     <button type="button" class="btn-ai-web-dock" onclick="aiWebDockWindow()" title="Mở cửa sổ nhỏ gắn kế bên — dùng bình thường như khung nhúng">📌 Cửa sổ</button>
                     <button type="button" class="btn-ai-web-close" onclick="toggleAIWebMode(false)" title="Tắt Trang Web AI">✖</button>
                 </div>
@@ -1289,7 +1336,7 @@
                             <b id="ai-web-blocked-title">🌐 Đang tải trang web...</b>
                             <p id="ai-web-blocked-msg"></p>
                             <div>
-                                <button type="button" class="btn-ai-web-open" onclick="window.open(aiWebCurrentUrl(),'_blank')">↗ Mở tab mới</button>
+                                <button type="button" class="btn-ai-web-open" onclick="window.open(aiWebCurrentUrl(),'_blank','noopener,noreferrer')">↗ Mở tab mới</button>
                                 <button type="button" class="btn-ai-web-dock" onclick="aiWebDockWindow()">📌 Cửa sổ kế bên</button>
                                 <button type="button" class="ai-web-topbtn" onclick="aiWebReload()">🔄 Thử lại</button>
                             </div>
@@ -1318,7 +1365,24 @@
         </div>
         <div id="drag-resizer" class="resizer"></div>
         <div id="result-viewer" class="box-viewer">
-            <div id="iframe-wrapper" class="iframe-container"><div id="ai-result-banner" class="ai-result-banner" style="display:none;"></div><iframe id="viewer"></iframe></div>
+            <div id="iframe-wrapper" class="iframe-container preview-desktop">
+                <div id="ai-result-banner" class="ai-result-banner" style="display:none;"></div>
+                <div id="preview-device-shell" class="preview-device-shell desktop" data-preview-device="pc">
+                    <div class="preview-browser-chrome" aria-hidden="true">
+                        <div class="preview-window-controls"><i></i><i></i><i></i></div>
+                        <div class="preview-browser-address"><strong>●</strong><span>CodeSpace Web Preview</span></div>
+                        <div class="preview-browser-actions">⋮</div>
+                    </div>
+                    <div class="preview-phone-buttons" aria-hidden="true"><i></i><i></i><i></i></div>
+                    <div class="preview-phone-camera" aria-hidden="true"></div>
+                    <div class="preview-mobile-status" aria-hidden="true">
+                        <span id="preview-mobile-clock">09:41</span>
+                        <span class="preview-mobile-status-icons"><i class="mobile-signal"></i><i class="mobile-wifi"></i><i class="mobile-battery"></i></span>
+                    </div>
+                    <div class="preview-device-viewport"><iframe id="viewer"></iframe></div>
+                    <div class="preview-mobile-browser-bar" aria-hidden="true"><span>‹</span><span>›</span><span class="mobile-browser-tabs">□</span><span>⋯</span></div>
+                </div>
+            </div>
 
             <div id="console-panel" class="console-panel">
                 <div class="console-header">
@@ -2050,6 +2114,10 @@
         let isAIAutoInsertEnabled = false;
         let isAIWebModeEnabled = false;
         let aiResultRunToken = 0;
+        let aiRunSequence = 0;
+        let aiRunSignature = '';
+        let aiRunInFlight = false;
+        let aiRunAbortController = null;
         let lastClipboardText = null;
         let autoPasteInterval = null;
         let autoPasteWarned = false;
@@ -2059,9 +2127,11 @@
 
         let activeEditPage = 'p1';
         let activePreviewPage = 'p1';
+        let previewMobileClockTimer = null;
 
         let showLines = true;
-        let typingTimer;
+        // Chỉ dùng các timer này cho tính năng Tự Chạy; autosave sẽ ghi khi rời trang.
+        const autoRunTimers = new Map();
 
         const editors = {};
         const models = {
@@ -3728,7 +3798,17 @@
             }
         }
 
-        async function cfHttpRequest(opts) {
+        function isSameCfEndpoint(first, second) {
+            try {
+                const a = new URL(String(first || ''), window.location.href);
+                const b = new URL(String(second || ''), window.location.href);
+                return a.protocol === b.protocol && a.host === b.host && a.pathname === b.pathname && a.search === b.search;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function cfHttpRequest(opts, allowConfiguredCredentials) {
             opts = opts || {};
             const cfg = getCfServerConfig();
             const rawUrl = String(opts.url || cfg.url || '').trim();
@@ -3738,8 +3818,16 @@
             const headers = {};
             const ctype = String(opts.contentType || cfg.contentType || 'application/json').trim();
             if (ctype && method !== 'GET') headers['Content-Type'] = ctype;
-            if (cfg.auth) headers['Authorization'] = cfg.auth;
-            Object.assign(headers, parseCfHeaderText(cfg.extraHeaders));
+
+            // Không gửi Authorization/extra headers của server cấu hình tới một
+            // URL tùy ý do custom feature cung cấp. CodeSpace.fetch() vẫn hoạt
+            // động bình thường khi gọi đúng endpoint đã cấu hình; luồng gửi
+            // feature nội bộ có thể cấp quyền tường minh ở call-site.
+            const attachConfiguredCredentials = !!allowConfiguredCredentials || isSameCfEndpoint(rawUrl, cfg.url);
+            if (attachConfiguredCredentials) {
+                if (cfg.auth) headers['Authorization'] = cfg.auth;
+                Object.assign(headers, parseCfHeaderText(cfg.extraHeaders));
+            }
             if (opts.headers && typeof opts.headers === 'object') {
                 Object.keys(opts.headers).forEach(function (k) { headers[String(k)] = String(opts.headers[k]); });
             }
@@ -3806,7 +3894,7 @@
                 method: cfg.method,
                 contentType: cfg.contentType,
                 body: payload
-            });
+            }, true);
             if (!options.silent) {
                 cfServerLog('Phản hồi HTTP ' + result.status + ' ' + (result.statusText || '') + (result.ok ? ' ✅' : ' ❌'));
                 if (result.body) cfServerLog(result.body.slice(0, 800));
@@ -4916,7 +5004,7 @@ Yêu cầu bắt buộc:
         function openAIWebInTab() {
             const url = getAIWebMenuUrl();
             if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
-            window.open(url, '_blank');
+            window.open(url, '_blank', 'noopener,noreferrer');
             closeAIWebMenu();
             showAutoPasteToast('↗ Đã mở "' + url + '" trong tab mới');
         }
@@ -6092,17 +6180,18 @@ Yêu cầu bắt buộc:
             chatBody.scrollTop = chatBody.scrollHeight;
         }
 
-        async function callAIProvider(keyObj, promptText, botMsg, attachments) {
+        async function callAIProvider(keyObj, promptText, botMsg, attachments, requestOptions) {
             attachments = attachments || [];
+            requestOptions = requestOptions || {};
             const providerId = keyObj.provider || 'gemini';
             const preset = getProviderPreset(providerId);
 
             if (preset.format === 'gemini') {
-                return await callGeminiProvider(keyObj, promptText, botMsg, attachments);
+                return await callGeminiProvider(keyObj, promptText, botMsg, attachments, requestOptions);
             } else if (preset.format === 'anthropic') {
-                return await callAnthropicProvider(keyObj, promptText, botMsg, attachments);
+                return await callAnthropicProvider(keyObj, promptText, botMsg, attachments, requestOptions);
             } else {
-                return await callOpenAICompatibleProvider(keyObj, promptText, botMsg, attachments);
+                return await callOpenAICompatibleProvider(keyObj, promptText, botMsg, attachments, requestOptions);
             }
         }
 
@@ -6117,19 +6206,29 @@ Yêu cầu bắt buộc:
             const proxy = (keyObj.proxy || '').trim();
             const targets = proxy ? [url, getAIProxyUrl(keyObj, url)] : [url];
             const TIMEOUT_MS = 60000;
+            const externalSignal = options && options.signal;
             let lastError = null;
             for (const target of targets) {
+                if (externalSignal && externalSignal.aborted) {
+                    const abortError = new Error('AI request đã được hủy.');
+                    abortError.name = 'AbortError';
+                    throw abortError;
+                }
                 const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const abortExternal = () => { if (controller) controller.abort(); };
                 const timer = controller ? setTimeout(() => controller.abort(), TIMEOUT_MS) : null;
+                if (externalSignal && controller) externalSignal.addEventListener('abort', abortExternal, { once: true });
                 try {
                     const opts = Object.assign({}, options);
                     if (controller) opts.signal = controller.signal;
                     const res = await fetch(target, opts);
                     if (res) return { res: res, viaProxy: target !== url };
                 } catch (e) {
+                    if (externalSignal && externalSignal.aborted) throw e;
                     lastError = e;
                 } finally {
                     if (timer) clearTimeout(timer);
+                    if (externalSignal && controller) externalSignal.removeEventListener('abort', abortExternal);
                 }
             }
             const err = new Error(lastError && lastError.message ? lastError.message : 'Không kết nối được API.');
@@ -6147,8 +6246,9 @@ Yêu cầu bắt buộc:
             return msg;
         }
 
-        async function callGeminiProvider(keyObj, promptText, botMsg, attachments) {
+        async function callGeminiProvider(keyObj, promptText, botMsg, attachments, requestOptions) {
             attachments = attachments || [];
+            requestOptions = requestOptions || {};
             const modelChain = keyObj.model ? [keyObj.model, 'gemini-2.5-flash', 'gemini-2.0-flash'] : ['gemini-2.5-flash', 'gemini-2.0-flash'];
             const MAX_RETRIES_PER_MODEL = 2;
             const BASE_DELAY_MS = 1500;
@@ -6166,7 +6266,8 @@ Yêu cầu bắt buộc:
                         const { res } = await fetchWithAIProxy(keyObj, `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${keyObj.key}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: parts }] })
+                            body: JSON.stringify({ contents: [{ parts: parts }] }),
+                            signal: requestOptions.signal
                         });
 
                         const data = await res.json();
@@ -6188,6 +6289,7 @@ Yêu cầu bắt buộc:
                         }
                         return { success: false, errorMessage: 'Không nhận được phản hồi từ Gemini.' };
                     } catch (e) {
+                        if (requestOptions.signal && requestOptions.signal.aborted) throw e;
                         if (e.isNetwork) lastNetworkError = e;
                         if (attempt >= MAX_RETRIES_PER_MODEL) break;
                         await new Promise(r => setTimeout(r, BASE_DELAY_MS));
@@ -6205,8 +6307,9 @@ Yêu cầu bắt buộc:
             return { success: false, errorMessage: 'Máy chủ Gemini đang quá tải. Vui lòng đợi vài phút rồi thử lại.' };
         }
 
-        async function callOpenAICompatibleProvider(keyObj, promptText, botMsg, attachments) {
+        async function callOpenAICompatibleProvider(keyObj, promptText, botMsg, attachments, requestOptions) {
             attachments = attachments || [];
+            requestOptions = requestOptions || {};
             const preset = getProviderPreset(keyObj.provider);
             const endpoint = (keyObj.endpoint && keyObj.endpoint.trim()) || preset.endpoint;
             const model = (keyObj.model && keyObj.model.trim()) || preset.model;
@@ -6237,7 +6340,8 @@ Yêu cầu bắt buộc:
                     body: JSON.stringify({
                         model: model,
                         messages: [{ role: 'user', content: userContent }]
-                    })
+                    }),
+                    signal: requestOptions.signal
                 });
 
                 const data = await res.json();
@@ -6256,8 +6360,9 @@ Yêu cầu bắt buộc:
             }
         }
 
-        async function callAnthropicProvider(keyObj, promptText, botMsg, attachments) {
+        async function callAnthropicProvider(keyObj, promptText, botMsg, attachments, requestOptions) {
             attachments = attachments || [];
+            requestOptions = requestOptions || {};
             const preset = getProviderPreset('claude');
             const model = (keyObj.model && keyObj.model.trim()) || preset.model;
 
@@ -6283,7 +6388,8 @@ Yêu cầu bắt buộc:
                         model: model,
                         max_tokens: 4096,
                         messages: [{ role: 'user', content: userContent }]
-                    })
+                    }),
+                    signal: requestOptions.signal
                 });
 
                 const data = await res.json();
@@ -6478,21 +6584,25 @@ Yêu cầu bắt buộc:
             showAutoPasteToast('🎨 Đã chuyển sang theme: ' + themeName);
         }
 
+        function updateAutoRunButtonUI() {
+            const btn = document.getElementById('btn-toggle-autorun');
+            if (!btn) return;
+            if (isAutoRunEnabled) {
+                btn.textContent = '⚡ Tự Chạy: BẬT';
+                btn.style.background = '#059669';
+            } else {
+                btn.textContent = '⚡ Tự Chạy: TẮT';
+                btn.style.background = '#374151';
+            }
+        }
+
         function toggleAutoRun() {
             isAutoRunEnabled = !isAutoRunEnabled;
             safeSetLocalStorage('codespace_autorun_enabled', isAutoRunEnabled ? 'true' : 'false');
-            const btn = document.getElementById('btn-toggle-autorun');
-            if (btn) {
-                if (isAutoRunEnabled) {
-                    btn.textContent = '⚡ Tự Chạy: BẬT';
-                    btn.style.background = '#059669';
-                    showAutoPasteToast('⚡ Tự Động Chạy: ĐÃ BẬT (Preview tự cập nhật khi gõ)');
-                } else {
-                    btn.textContent = '⚡ Tự Chạy: TẮT';
-                    btn.style.background = '#374151';
-                    showAutoPasteToast('⚡ Tự Động Chạy: ĐÃ TẮT (Chỉ chạy khi bấm Chạy ▶)');
-                }
-            }
+            updateAutoRunButtonUI();
+            showAutoPasteToast(isAutoRunEnabled
+                ? '⚡ Tự Động Chạy: ĐÃ BẬT (Preview tự cập nhật khi gõ)'
+                : '⚡ Tự Động Chạy: ĐÃ TẮT (Chỉ chạy khi bấm Chạy ▶)');
         }
         /* ==================== CORE WORKSPACE LOGIC ==================== */
         function getCode(page, type) {
@@ -6534,6 +6644,24 @@ Yêu cầu bắt buộc:
         function ensureHtml2Canvas() {
             if (typeof html2canvas === 'function') return Promise.resolve();
             return loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+        }
+
+        async function ensureJSZip() {
+            if (typeof JSZip !== 'undefined') return;
+            const sources = [
+                'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
+                'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js'
+            ];
+            let lastError = null;
+            for (const src of sources) {
+                try {
+                    await loadScriptOnce(src);
+                    if (typeof JSZip !== 'undefined') return;
+                } catch (e) {
+                    lastError = e;
+                }
+            }
+            throw lastError || new Error('Không tải được thư viện ZIP.');
         }
 
         function switchActivePage(page) {
@@ -6591,7 +6719,6 @@ Yêu cầu bắt buộc:
                 if (selectModal) selectModal.value = 'false';
                 switchActivePage('p1');
             }
-            runCode();
         }
 
         function onWeb2SelectChange(select) {
@@ -6708,7 +6835,7 @@ Yêu cầu bắt buộc:
             return text;
         }
 
-        async function runCodeWithAI() {
+        async function runCodeWithAI(requestSignal) {
             const myToken = ++aiResultRunToken;
             const target = activePreviewPage;
             const h = getCode(target, 'html');
@@ -6755,7 +6882,7 @@ ${cpp}`;
             document.body.appendChild(dummyStatusNode);
 
             try {
-                const result = await callAIProvider(activeKey, promptText, dummyStatusNode, []);
+                const result = await callAIProvider(activeKey, promptText, dummyStatusNode, [], { signal: requestSignal });
                 dummyStatusNode.remove();
                 if (myToken !== aiResultRunToken) return;
 
@@ -6787,12 +6914,47 @@ ${cpp}`;
             }
         }
 
+        function updatePreviewMobileClock() {
+            const clock = document.getElementById('preview-mobile-clock');
+            if (!clock) return;
+            const now = new Date();
+            const pad = value => String(value).padStart(2, '0');
+            clock.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
+        }
+
+        function initPreviewMobileClock() {
+            updatePreviewMobileClock();
+            if (previewMobileClockTimer) clearInterval(previewMobileClockTimer);
+            previewMobileClockTimer = setInterval(updatePreviewMobileClock, 30000);
+        }
+
         function setPreviewDevice(device) {
             const wrapper = document.getElementById('iframe-wrapper');
+            const shell = document.getElementById('preview-device-shell');
             const btnPC = document.getElementById('btn-preview-pc');
             const btnMobile = document.getElementById('btn-preview-mobile');
-            if (device === 'mobile') { wrapper.classList.add('preview-mobile'); btnMobile.classList.add('btn-active'); btnPC.classList.remove('btn-active'); }
-            else { wrapper.classList.remove('preview-mobile'); btnPC.classList.add('btn-active'); btnMobile.classList.remove('btn-active'); }
+            if (!wrapper || !shell) return;
+
+            if (device === 'mobile') {
+                wrapper.classList.add('preview-mobile');
+                wrapper.classList.remove('preview-desktop');
+                shell.classList.add('mobile');
+                shell.classList.remove('desktop');
+                shell.dataset.previewDevice = 'mobile';
+                btnMobile.classList.add('btn-active');
+                btnPC.classList.remove('btn-active');
+            } else {
+                wrapper.classList.remove('preview-mobile');
+                wrapper.classList.add('preview-desktop');
+                shell.classList.add('desktop');
+                shell.classList.remove('mobile');
+                shell.dataset.previewDevice = 'pc';
+                btnPC.classList.add('btn-active');
+                btnMobile.classList.remove('btn-active');
+            }
+
+            // Monaco cần tính lại kích thước sau khi đổi viewport mô phỏng.
+            setTimeout(() => { if (editors[currentTab]) editors[currentTab].layout(); }, 50);
         }
 
         window.addEventListener('resize', () => {
@@ -6851,7 +7013,7 @@ ${cpp}`;
             } else alert("Không tìm thấy từ khóa nào.");
         }
 
-        document.getElementById('find-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') findNextText(); });
+        document.getElementById('find-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); findNextText(); } });
 
         function toggleResultFullscreen() { const resultPanel = document.getElementById('result-viewer'); const btn = document.getElementById('fullscreen-btn'); if (!document.fullscreenElement) { resultPanel.requestFullscreen().then(() => { btn.textContent = "❌ Thoát phóng to"; }).catch(err => { alert("Lỗi phóng to!"); }); } else { document.exitFullscreen(); btn.textContent = "📺 Toàn màn hình"; } }
         document.addEventListener('fullscreenchange', () => { const btn = document.getElementById('fullscreen-btn'); if (!document.fullscreenElement) btn.textContent = "📺 Toàn màn hình"; });
@@ -6958,29 +7120,33 @@ ${cpp}`;
         }
 
         async function downloadZip() {
-            const zip = new JSZip();
-            const folderP1 = zip.folder("page1");
-            folderP1.file("index.html", getCode('p1', 'html'));
-            folderP1.file("style.css", getCode('p1', 'css'));
-            folderP1.file("script.js", getCode('p1', 'js'));
-            folderP1.file("main.py", getCode('p1', 'py'));
-            folderP1.file("main.cpp", getCode('p1', 'cpp'));
+            try {
+                await ensureJSZip();
+                const zip = new JSZip();
+                const folderP1 = zip.folder("page1");
+                folderP1.file("index.html", buildFullSource('p1'));
+                folderP1.file("style.css", getCode('p1', 'css'));
+                folderP1.file("script.js", getCode('p1', 'js'));
+                folderP1.file("main.py", getCode('p1', 'py'));
+                folderP1.file("main.cpp", getCode('p1', 'cpp'));
 
-            if (isWeb2Enabled) {
-                const folderP2 = zip.folder("page2");
-                folderP2.file("page2.html", getCode('p2', 'html'));
-                folderP2.file("style.css", getCode('p2', 'css'));
-                folderP2.file("script.js", getCode('p2', 'js'));
-                folderP2.file("main.py", getCode('p2', 'py'));
-                folderP2.file("main.cpp", getCode('p2', 'cpp'));
-            }
+                if (isWeb2Enabled) {
+                    const folderP2 = zip.folder("page2");
+                    folderP2.file("page2.html", buildFullSource('p2'));
+                    folderP2.file("style.css", getCode('p2', 'css'));
+                    folderP2.file("script.js", getCode('p2', 'js'));
+                    folderP2.file("main.py", getCode('p2', 'py'));
+                    folderP2.file("main.cpp", getCode('p2', 'cpp'));
+                }
 
-            zip.file("index.html", getCode('p1', 'html'));
-
-            zip.generateAsync({ type: "blob" }).then(function (content) {
+                // Entry point dùng source đã gộp nên mở trực tiếp vẫn giữ CSS/JS
+                // và các runner Python/C++ của preview.
+                zip.file("index.html", buildFullSource('p1'));
+                const content = await zip.generateAsync({ type: "blob" });
                 downloadBlob(content, "codespace_project.zip", "application/zip");
-            }).catch(err => alert("❌ Lỗi khi tạo ZIP: " + err.message));
-
+            } catch (err) {
+                alert("❌ Lỗi khi tạo ZIP: " + (err && err.message ? err.message : err));
+            }
             closeDownloadMenu();
         }
 
@@ -7086,6 +7252,7 @@ ${cpp}`;
             const wantWindows = platforms.includes('windows');
 
             try {
+                await ensureJSZip();
                 const zip = new JSZip();
                 const iconsFolder = zip.folder('icons');
 
@@ -7106,7 +7273,7 @@ ${cpp}`;
                 if (wantIOS) {
                     const icon180Blob = await makeIconBlob(180, appName);
                     iconsFolder.file('icon-180.png', icon180Blob);
-                    headExtras += `<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="${appName.replace(/"/g, '&quot;')}">\n<link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">\n`;
+                    headExtras += `<meta name="apple-mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-title" content="${escapeHtml(appName)}">\n<link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">\n`;
                 }
                 if (wantWindows) {
                     const icon150Blob = await makeIconBlob(150, appName);
@@ -7134,7 +7301,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 zip.file('service-worker.js', serviceWorkerCode);
 
                 let source = buildFullSource(page);
-                const pwaHead = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#00b0ff">\n${headExtras}<link rel="icon" href="./icons/icon-192.png">\n<title>${appName.replace(/"/g, '&quot;')}</title>`;
+                const pwaHead = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#00b0ff">\n${headExtras}<link rel="icon" href="./icons/icon-192.png">\n<title>${escapeHtml(appName)}</title>`;
                 source = source.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + pwaHead);
                 const swRegisterScript = `<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW lỗi:', err)); }); }<\/script>`;
                 source = source.replace('</body>', swRegisterScript + '\n</body>');
@@ -7284,24 +7451,42 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             }, 250));
         }
 
-        function onCodeInput(page, type) {
-            showSaveStatus();
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                safeSetLocalStorage(`codespace_${page}_${type}`, getCode(page, type));
-                if (isAutoRunEnabled) {
-                    runCode();
-                }
-            }, 600);
+        function flushCodeSavesOnPageExit() {
+            // Chỉ autosave khi trang thực sự rời đi/reload/đóng tab. Ghi lại
+            // toàn bộ editor để không phụ thuộc vào debounce cuối cùng.
+            ['p1', 'p2'].forEach(page => {
+                ['html', 'css', 'js', 'py', 'cpp'].forEach(type => {
+                    safeSetLocalStorage(`codespace_${page}_${type}`, getCode(page, type));
+                });
+            });
+
+            // Không để timer Tự Chạy chạy thêm khi trang đang đóng.
+            autoRunTimers.forEach(timer => clearTimeout(timer));
+            autoRunTimers.clear();
         }
 
-        let saveStatusTimer = null;
+        function onCodeInput(page, type) {
+            showSaveStatus();
+
+            // Autosave không chạy theo từng phím nữa. Timer riêng này chỉ giữ
+            // nguyên tính năng Tự Chạy preview sau khi người dùng ngừng gõ.
+            const runKey = `${page}:${type}`;
+            clearTimeout(autoRunTimers.get(runKey));
+            autoRunTimers.delete(runKey);
+            if (isAutoRunEnabled) {
+                autoRunTimers.set(runKey, setTimeout(() => {
+                    autoRunTimers.delete(runKey);
+                    if (isAutoRunEnabled) runCode();
+                }, 600));
+            }
+        }
+
+        window.addEventListener('pagehide', flushCodeSavesOnPageExit);
+
         function showSaveStatus() {
             const indicator = document.getElementById('save-indicator');
             if (!indicator) return;
-            indicator.textContent = "Đang lưu...";
-            clearTimeout(saveStatusTimer);
-            saveStatusTimer = setTimeout(() => { indicator.textContent = "Đã lưu tự động"; }, 600);
+            indicator.textContent = "Đã thay đổi — sẽ tự động lưu khi thoát trang";
         }
 
         function changeFontSize(amount) {
@@ -8015,8 +8200,51 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n${adsStyle}\n${c}\n</style>\n${consoleInterceptorScript}\n</head>\n<body>\n${finalBody}\n<script>\n${j}\n${adsJS}\n<\/script>\n${pythonRunnerScript}\n${cppRunnerScript}\n</body>\n</html>`;
         }
 
-        function runCode() {
-            if (isAIResultEnabled) { runCodeWithAI(); return; }
+        function runCode(force) {
+            if (isAIResultEnabled) {
+                const target = activePreviewPage;
+                const signature = JSON.stringify([
+                    target,
+                    getCode(target, 'html'),
+                    getCode(target, 'css'),
+                    getCode(target, 'js'),
+                    getCode(target, 'py'),
+                    getCode(target, 'cpp')
+                ]);
+
+                // Một thao tác chuyển trang/toggle có thể gọi runCode() nhiều
+                // lần. Chặn request AI trùng khi request trước vẫn đang chạy;
+                // nút Chạy truyền force=true để người dùng chủ động thử lại.
+                if (!force && aiRunInFlight && aiRunSignature === signature) return;
+                if (aiRunAbortController) {
+                    try { aiRunAbortController.abort(); } catch (e) {}
+                }
+                const sequence = ++aiRunSequence;
+                aiRunSignature = signature;
+                aiRunInFlight = true;
+                aiRunAbortController = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+                const controller = aiRunAbortController;
+                const signal = controller ? controller.signal : undefined;
+                runCodeWithAI(signal).finally(() => {
+                    if (sequence === aiRunSequence) {
+                        aiRunInFlight = false;
+                        if (aiRunAbortController === controller) aiRunAbortController = null;
+                    }
+                });
+                return;
+            }
+
+            // Nếu người dùng tắt AI Result trong lúc request đang chạy, hủy
+            // request cũ để tránh tốn API và không để kết quả cũ ghi đè preview.
+            if (aiRunAbortController) {
+                try { aiRunAbortController.abort(); } catch (e) {}
+            }
+            aiRunAbortController = null;
+            aiRunInFlight = false;
+            aiRunSignature = '';
+            ++aiRunSequence;
+            ++aiResultRunToken;
+
             setAIResultBanner('');
             const source = buildFullSource();
             const viewer = document.getElementById('viewer');
@@ -8024,24 +8252,52 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
         }
 
         const CONSOLE_MAX_LINES = 1500;
+
+        // Chỉ nhận message từ đúng iframe con mà CodeSpace tạo ra. Trước đây mọi
+        // cửa sổ/website nhúng trong trang đều có thể gọi cf-api hoặc tắt video ad.
+        function isMessageFromFrame(event, frameIds) {
+            if (!event || !event.source) return false;
+            // Blob/srcdoc giữ origin của ứng dụng; "null" được chấp nhận cho
+            // môi trường file:// hoặc iframe sandbox trong tương lai. Nếu một
+            // iframe điều hướng sang website khác, message sẽ bị loại bỏ.
+            if (event.origin !== window.location.origin && event.origin !== 'null') return false;
+            return frameIds.some(function (id) {
+                const frame = document.getElementById(id);
+                return !!(frame && frame.contentWindow === event.source);
+            });
+        }
+
         window.addEventListener('message', function(event) {
-            if (event.data && event.data.type) {
-                if (event.data.type === 'close-video-ad') { setMode(''); return; }
-                if (event.data.type === 'cf-api') { handleCustomFeatureApi(event); return; }
-                if (event.data.type !== 'log' && event.data.type !== 'error' && event.data.type !== 'warn') return;
-                const outputs = document.getElementById('console-outputs');
-                if (outputs.firstChild && outputs.firstChild.textContent.includes("Hệ thống đang hoạt động...")) { outputs.innerHTML = ''; }
-                const logDiv = document.createElement('div');
-                if (event.data.type === 'error') { logDiv.className = 'console-error'; logDiv.textContent = `❌ [Lỗi] ${event.data.data}`; }
-                else if (event.data.type === 'warn') { logDiv.className = 'console-warn'; logDiv.textContent = `⚠️ [Cảnh Báo] ${event.data.data}`; }
-                else { logDiv.textContent = `> ${event.data.data}`; }
-                outputs.appendChild(logDiv);
-                while (outputs.childElementCount > CONSOLE_MAX_LINES) outputs.removeChild(outputs.firstChild);
-                outputs.scrollTop = outputs.scrollHeight;
+            const data = event.data;
+            if (!data || !data.type) return;
+
+            if (data.type === 'close-video-ad') {
+                if (isMessageFromFrame(event, ['viewer'])) setMode('');
+                return;
             }
+            if (data.type === 'cf-api') {
+                if (isMessageFromFrame(event, ['cf-corner-frame', 'cf-center-frame'])) {
+                    handleCustomFeatureApi(event);
+                }
+                return;
+            }
+            if (data.type !== 'log' && data.type !== 'error' && data.type !== 'warn') return;
+            if (!isMessageFromFrame(event, ['viewer'])) return;
+
+            const outputs = document.getElementById('console-outputs');
+            if (!outputs) return;
+            if (outputs.firstChild && outputs.firstChild.textContent.includes("Hệ thống đang hoạt động...")) { outputs.innerHTML = ''; }
+            const logDiv = document.createElement('div');
+            if (data.type === 'error') { logDiv.className = 'console-error'; logDiv.textContent = `❌ [Lỗi] ${data.data}`; }
+            else if (data.type === 'warn') { logDiv.className = 'console-warn'; logDiv.textContent = `⚠️ [Cảnh Báo] ${data.data}`; }
+            else { logDiv.textContent = `> ${data.data}`; }
+            outputs.appendChild(logDiv);
+            while (outputs.childElementCount > CONSOLE_MAX_LINES) outputs.removeChild(outputs.firstChild);
+            outputs.scrollTop = outputs.scrollHeight;
         });
 
         window.onload = () => {
+            initPreviewMobileClock();
             if(window.innerWidth <= 768) { changeLayoutMode('mobile'); } else { changeLayoutMode('pc'); } setMode('');
 
             adsLocation = localStorage.getItem('codespace_ads_location') || 'none';
@@ -8051,6 +8307,8 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             adsSize = localStorage.getItem('codespace_ads_size') || 'auto';
             isWeb2Enabled = localStorage.getItem('codespace_web2_enabled') === 'true';
             isAutoPasteEnabled = localStorage.getItem('codespace_autopaste_enabled') === 'true';
+            isAutoRunEnabled = localStorage.getItem('codespace_autorun_enabled') !== 'false';
+            updateAutoRunButtonUI();
             isAIResultEnabled = localStorage.getItem('codespace_ai_result_enabled') === 'true';
             updateAIResultButtonUI();
             isAIAutoInsertEnabled = localStorage.getItem('codespace_ai_autoinsert_enabled') === 'true';

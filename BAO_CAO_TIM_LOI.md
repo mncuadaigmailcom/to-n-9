@@ -1,17 +1,17 @@
-# Báo cáo phân tích & tìm lỗi — `to-n-9/index.html` (đã sửa toàn bộ ✅)
+# Báo cáo phân tích & tìm lỗi — `to-n-9/index.html` (đã sửa các lỗi đã xác nhận ✅)
 
-> Cập nhật lần cuối: **tất cả 6 lỗi đã được sửa và kiểm chứng** (xem mục 3). Mục 2 giữ lại mô tả lỗi gốc để đối chiếu.
+> Cập nhật lần cuối: **6 lỗi ban đầu và các lỗi bổ sung đã được sửa/kiểm chứng**. Mục 2 giữ lại mô tả lỗi gốc để đối chiếu.
 
 ---
 
 ## 1. Tổng quan
 
-- **Kích thước hiện tại:** ~6.850 dòng, ~395 KB.
+- **Kích thước hiện tại:** ~8.472 dòng, ~504 KB.
 - **Kiểm tra tự động sau khi sửa:**
   - `node --check` script chính → cú pháp JS **hợp lệ** ✅
-  - Không có `id` trùng lặp (206/206 id duy nhất) ✅
-  - HTML cân bằng thẻ: `<div>` 263/263, `<select>` 12/12, `<span>` 48/48 ✅
-  - Mọi hàm gọi trong `onclick/onchange/onkeypress...` đều tồn tại ✅
+  - Không có `id` trùng lặp (250/250 id duy nhất) ✅
+  - HTML cân bằng thẻ: `<div>` 326/326, `<select>` 13/13, `<span>` 64/64 ✅
+  - Mọi hàm gọi trong `onclick/onchange/onkeydown...` đều tồn tại ✅
   - `getElementById(...)` trỏ tới phần tử tồn tại ✅
 
 ---
@@ -96,7 +96,7 @@
 |---|---------|--------|---------------|
 | 1 | Khởi động | Tải **pyodide (~2.5MB) không dùng ở cấp ứng dụng** + `tesseract.js`/`html2canvas` tải sẵn từ đầu → trang mở rất chậm, bị chặn parse HTML | Bỏ hẳn pyodide ở app (iframe tự nạp khi chạy Python); `tesseract`/`html2canvas` → **lazy-load** đúng lúc dùng (OCR / chụp ảnh) qua `loadScriptOnce()`; thêm `defer` cho JSZip + Monaco loader để không chặn dựng trang |
 | 2 | Gõ code | `updateHttpsHighlighting()` quét toàn bộ code **mỗi keystroke** | Debounce 250ms **theo từng editor** (Map theo `getId()`) — highlight vẫn đủ, chỉ bớt việc quét liên tục |
-| 3 | Gõ code | `showSaveStatus()` tạo timeout mới mỗi phím (churn timer) | Dùng 1 timer dùng chung, `clearTimeout` trước khi set mới |
+| 3 | Gõ code | Autosave theo từng phím gây ghi `localStorage` liên tục và có thể tranh chấp timer với Tự Chạy | Chỉ autosave toàn bộ editor khi `pagehide`; timer Tự Chạy được tách riêng |
 | 4 | Chạy code | `runCode()` gán lại `srcdoc` kể cả khi source không đổi → iframe re-render thừa | Chỉ gán khi `viewer.srcdoc !== source` (không đổi hành vi, đỡ re-render lặp) |
 | 5 | Console | Bảng log phình vô hạn + `innerHTML.includes` quét toàn bộ mỗi dòng log → chậm dần O(n²) | Giữ tối đa **1500 dòng** (xóa dòng đầu khi vượt); kiểm tra dòng "Hệ thống..." qua `firstChild` thay vì quét toàn DOM |
 | 6 | Kéo khung AI web | `mousemove` set `style.width` mỗi event → nhiều layout/frame thừa | Throttle bằng `requestAnimationFrame` (chỉ 1 lần/frame), `endDrag` huỷ rAF đang chờ |
@@ -104,7 +104,7 @@
 | 8 | Gộp tính năng | Ô tìm kiếm render lại toàn bộ danh sách mỗi keystroke | Debounce 150ms qua `scheduleComboFeaturePickerRender()` |
 
 **Kiểm chứng (đều PASS):**
-- `node --check` hợp lệ; 206 id duy nhất; thẻ cân bằng (`div` 263/263, `select` 12/12, `span` 48/48, `iframe` 2/2); mọi handler & `getElementById` tồn tại.
+- `node --check` hợp lệ; 250 id duy nhất; thẻ cân bằng (`div` 326/326, `select` 13/13, `span` 64/64, `iframe` 4/4); mọi handler & `getElementById` tồn tại.
 - Mô phỏng Node: `runCode` chỉ gán srcdoc khi khác (3 lần gọi → 1 lần gán); `webUrlLog` rút gọn đúng (~12.350 ký tự sau 3000 dòng) + đồng bộ khi bị ghi đè ngoài; console giữ đúng 1500 dòng; lazy-loader chỉ chèn 1 script, lỗi thì reject và tải lại được; highlight debounce gõ liên tục chỉ chạy 1 lần/250ms/editor.
 - Tính năng giữ nguyên: pyodide & JSCPP vẫn được nhúng trong trang kết quả, JSZip vẫn hoạt động, OCR/chụp ảnh có fallback thông báo khi không tải được thư viện.
 
@@ -130,3 +130,22 @@
 
 **Kiểm chứng (jsdom + fetch mock, đều PASS):**
 - Chat trả lời đúng; lỗi CORS → thông báo có hướng dẫn (không "❌ ❌" kép); Gemini 403 vùng → có hint Việt Nam; có proxy + lỗi trực tiếp → tự gọi proxy thành công; Enter (keydown) gửi tin nhắn; nút kiểm tra kết nối hiện kết quả đúng; `node --check` PASS; id duy nhất, thẻ cân bằng.
+
+---
+
+## 7. Sửa bổ sung trong phiên hiện tại
+
+Các thay đổi dưới đây giữ nguyên các tính năng hiện có và chỉ bổ sung kiểm tra/an toàn hoặc sửa hành vi lỗi:
+
+1. **Bảo vệ `postMessage`:** chỉ nhận log/video message từ `#viewer` và chỉ nhận `cf-api` từ hai iframe custom feature; kiểm tra cả `event.source` và origin. Website mở trong khung AI không còn tự ý gọi API nội bộ, sửa code hoặc tắt video ad.
+2. **Không phát tán credential custom server:** `CodeSpace.fetch()` không còn tự động gửi `Authorization`/extra headers tới URL tùy ý; gửi feature nội bộ vẫn giữ cơ chế auth cũ.
+3. **Autosave chỉ khi rời trang:** khi đang gõ, code không còn ghi `localStorage` sau mỗi debounce; lúc `pagehide` toàn bộ editor được lưu một lần. Tính năng Tự Chạy vẫn dùng timer riêng và không bị thay đổi.
+4. **AI Result chống request trùng:** thao tác toggle/chuyển trang không còn tạo request AI trùng; request preview cũ được hủy khi có request mới hoặc khi tắt AI Result. Nút **Chạy** vẫn cho phép chạy lại cưỡng bức.
+5. **ZIP chạy được ngay:** entry point `index.html` và các entry page dùng source đã gộp, nhưng các file HTML/CSS/JS/Python/C++ riêng vẫn được giữ lại trong ZIP.
+6. **Tải ZIP bền hơn:** ZIP/PWA tự nạp JSZip dự phòng nếu CDN defer chưa kịp tải hoặc CDN chính lỗi.
+7. **PWA escape tên app:** tên app trong `<title>` và meta tag được escape đầy đủ.
+8. **Ghi nhớ Auto-run:** trạng thái Tự Chạy được khôi phục sau khi reload.
+9. **Mở tab ngoài an toàn hơn:** các nút mở AI Web dùng `noopener,noreferrer`.
+10. **Mô phỏng thiết bị khi xem preview:** **Web Full** hiển thị khung trình duyệt máy tính với thanh điều khiển và viewport đầy đủ; **Khung ĐT** hiển thị vỏ điện thoại hoàn chỉnh hơn với viền mảnh, bóng đổ nhẹ, notch/camera, nút cạnh, đồng hồ, biểu tượng sóng/Wi-Fi/pin, thanh trình duyệt mobile và thanh Home. Iframe `#viewer` vẫn giữ nguyên để không ảnh hưởng chạy code, log, cuộn hoặc chụp kết quả.
+
+**Kiểm chứng sau thay đổi:** `node --check` script chính PASS, `git diff --check` PASS, 250 ID vẫn duy nhất; không xóa tính năng hiện có, chỉ bổ sung giao diện mô phỏng thiết bị.
