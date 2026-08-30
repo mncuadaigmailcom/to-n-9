@@ -913,10 +913,35 @@
         .editor-container { flex: 1; display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
         .editor-container.active { display: block; }
 
-        .iframe-container { flex: 1; position: relative; background: white; display: flex; justify-content: center; align-items: stretch; overflow: hidden; transition: background 0.3s; }
+        .iframe-container { flex: 1; position: relative; background: #0f141b; display: flex; justify-content: center; align-items: stretch; overflow: hidden; transition: background 0.3s; }
         iframe { width: 100%; height: 100%; border: none; background: white; transition: all 0.3s ease; overflow: auto !important; -webkit-overflow-scrolling: touch; }
-        .iframe-container.preview-mobile { background-color: #29292e; justify-content: center; align-items: center; }
-        .iframe-container.preview-mobile iframe { width: 375px; height: 100%; display: block; box-shadow: 0 0 20px rgba(0,0,0,0.6); border-left: 1px solid #424242; border-right: 1px solid #424242; }
+
+        /* Mô phỏng thiết bị cho hai chế độ Web Full / Khung ĐT. Iframe viewer
+           vẫn giữ nguyên id và document để không ảnh hưởng chạy code, log hay chụp ảnh. */
+        .preview-device-shell { position: relative; z-index: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
+        .preview-device-shell.desktop { width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; border: 1px solid #334155; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+        .preview-browser-chrome { flex: 0 0 38px; height: 38px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: linear-gradient(180deg, #202936, #151c26); border-bottom: 1px solid #334155; color: #94a3b8; font: 12px/1 sans-serif; user-select: none; }
+        .preview-window-controls { display: flex; gap: 6px; flex: 0 0 auto; }
+        .preview-window-controls i { display: block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
+        .preview-window-controls i:nth-child(2) { background: #f59e0b; }
+        .preview-window-controls i:nth-child(3) { background: #22c55e; }
+        .preview-browser-address { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; height: 24px; padding: 0 10px; border: 1px solid #334155; border-radius: 6px; background: #0f172a; color: #cbd5e1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .preview-browser-address strong { color: #22c55e; font-size: 11px; }
+        .preview-browser-actions { flex: 0 0 auto; color: #64748b; font-size: 16px; letter-spacing: 2px; }
+        .preview-device-viewport { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
+        .preview-device-viewport iframe { display: block; width: 100%; height: 100%; border: none; box-shadow: none; }
+
+        .iframe-container.preview-mobile { background: radial-gradient(circle at center, #3b4350 0%, #1b2028 72%); justify-content: center; align-items: center; padding: 12px; }
+        .preview-device-shell.mobile { width: min(390px, calc(100% - 4px)); height: min(780px, calc(100% - 4px)); flex: 0 1 auto; border: 8px solid #11151b; border-radius: 38px; box-shadow: 0 16px 38px rgba(0,0,0,0.62), 0 0 0 1px #566170; background: #080b10; }
+        .preview-device-shell.mobile::before { content: ''; position: absolute; z-index: 3; top: 0; left: 50%; width: 112px; height: 22px; transform: translateX(-50%); border-radius: 0 0 14px 14px; background: #080b10; pointer-events: none; }
+        .preview-device-shell.mobile::after { content: ''; position: absolute; z-index: 3; left: 50%; bottom: 6px; width: 112px; height: 4px; transform: translateX(-50%); border-radius: 4px; background: rgba(255,255,255,0.76); pointer-events: none; }
+        .preview-mobile-status { display: flex; align-items: center; justify-content: space-between; flex: 0 0 28px; height: 28px; padding: 4px 14px 2px; background: #080b10; color: #f8fafc; font: 700 10px/1 sans-serif; letter-spacing: 0.2px; user-select: none; }
+        .preview-mobile-status span:last-child { color: #cbd5e1; font-size: 9px; letter-spacing: 1px; }
+        .preview-device-shell.desktop .preview-mobile-status { display: none; }
+        .preview-device-shell.mobile .preview-browser-chrome { display: none; }
+        .preview-device-shell.mobile .preview-device-viewport { border-radius: 22px 22px 24px 24px; }
+        .preview-device-shell.mobile .preview-device-viewport iframe { width: 100%; height: 100%; }
+        .iframe-container.preview-desktop { background: #0f141b; }
 
         .resizer { background: #1a1a1e; z-index: 10; transition: background 0.2s; border: 1px solid #29292e; }
         .resizer:hover, .resizer.dragging { background: #00b0ff; }
@@ -1100,8 +1125,8 @@
         <button id="btn-layout-mobile" class="btn-mode-mobile" onclick="changeLayoutMode('mobile')">📱 Bố cục Mobile</button>
         <span class="divider">|</span>
 
-        <button id="btn-preview-pc" class="btn-device-preview btn-active" onclick="setPreviewDevice('pc')">🌐 Web Full</button>
-        <button id="btn-preview-mobile" class="btn-device-preview" onclick="setPreviewDevice('mobile')">📱 Khung ĐT</button>
+        <button id="btn-preview-pc" class="btn-device-preview btn-active" onclick="setPreviewDevice('pc')" title="Mô phỏng màn hình máy tính khi truy cập website">🌐 Web Full</button>
+        <button id="btn-preview-mobile" class="btn-device-preview" onclick="setPreviewDevice('mobile')" title="Mô phỏng màn hình điện thoại và viewport mobile">📱 Khung ĐT</button>
         <span class="divider">|</span>
 
         <button id="mode-btn-split" class="btn-active" onclick="setMode('')">🔲 Chia đôi</button>
@@ -1318,7 +1343,18 @@
         </div>
         <div id="drag-resizer" class="resizer"></div>
         <div id="result-viewer" class="box-viewer">
-            <div id="iframe-wrapper" class="iframe-container"><div id="ai-result-banner" class="ai-result-banner" style="display:none;"></div><iframe id="viewer"></iframe></div>
+            <div id="iframe-wrapper" class="iframe-container preview-desktop">
+                <div id="ai-result-banner" class="ai-result-banner" style="display:none;"></div>
+                <div id="preview-device-shell" class="preview-device-shell desktop" data-preview-device="pc">
+                    <div class="preview-browser-chrome" aria-hidden="true">
+                        <div class="preview-window-controls"><i></i><i></i><i></i></div>
+                        <div class="preview-browser-address"><strong>●</strong><span>CodeSpace Web Preview</span></div>
+                        <div class="preview-browser-actions">⋮</div>
+                    </div>
+                    <div class="preview-mobile-status" aria-hidden="true"><span>9:41</span><span>▮▮▮  Wi-Fi  ▰</span></div>
+                    <div class="preview-device-viewport"><iframe id="viewer"></iframe></div>
+                </div>
+            </div>
 
             <div id="console-panel" class="console-panel">
                 <div class="console-header">
@@ -6851,10 +6887,31 @@ ${cpp}`;
 
         function setPreviewDevice(device) {
             const wrapper = document.getElementById('iframe-wrapper');
+            const shell = document.getElementById('preview-device-shell');
             const btnPC = document.getElementById('btn-preview-pc');
             const btnMobile = document.getElementById('btn-preview-mobile');
-            if (device === 'mobile') { wrapper.classList.add('preview-mobile'); btnMobile.classList.add('btn-active'); btnPC.classList.remove('btn-active'); }
-            else { wrapper.classList.remove('preview-mobile'); btnPC.classList.add('btn-active'); btnMobile.classList.remove('btn-active'); }
+            if (!wrapper || !shell) return;
+
+            if (device === 'mobile') {
+                wrapper.classList.add('preview-mobile');
+                wrapper.classList.remove('preview-desktop');
+                shell.classList.add('mobile');
+                shell.classList.remove('desktop');
+                shell.dataset.previewDevice = 'mobile';
+                btnMobile.classList.add('btn-active');
+                btnPC.classList.remove('btn-active');
+            } else {
+                wrapper.classList.remove('preview-mobile');
+                wrapper.classList.add('preview-desktop');
+                shell.classList.add('desktop');
+                shell.classList.remove('mobile');
+                shell.dataset.previewDevice = 'pc';
+                btnPC.classList.add('btn-active');
+                btnMobile.classList.remove('btn-active');
+            }
+
+            // Monaco cần tính lại kích thước sau khi đổi viewport mô phỏng.
+            setTimeout(() => { if (editors[currentTab]) editors[currentTab].layout(); }, 50);
         }
 
         window.addEventListener('resize', () => {
