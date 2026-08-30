@@ -1193,7 +1193,7 @@
         <button id="btn-run-code" class="btn-run" onclick="runCode(true)">Chạy ▶</button>
         <button id="btn-toggle-ai-result" class="btn-ai-result" onclick="toggleAIResultFeature()" title="Khi bật: nút Chạy sẽ gửi code cho AI chuyển đổi Python/C++ thành HTML/JS thật.">🤖 Kết Quả AI: TẮT</button>
         <button id="btn-hide-toolbar" class="btn-toggle-ui" onclick="toggleToolbar(false)" style="background: #b71c1c;">🚫 Ẩn</button>
-        <div id="save-indicator" class="autosave-status">Đã lưu tự động</div>
+        <div id="save-indicator" class="autosave-status">Tự lưu khi thoát trang</div>
     </div>
 
     <!-- THANH TÌM KIẾM & THAY THẾ -->
@@ -2065,7 +2065,8 @@
         let activePreviewPage = 'p1';
 
         let showLines = true;
-        const typingTimers = new Map();
+        // Chỉ dùng các timer này cho tính năng Tự Chạy; autosave sẽ ghi khi rời trang.
+        const autoRunTimers = new Map();
 
         const editors = {};
         const models = {
@@ -7350,39 +7351,42 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             }, 250));
         }
 
-        function flushPendingCodeSaves() {
-            typingTimers.forEach((timer, key) => {
-                clearTimeout(timer);
-                const separator = key.indexOf(':');
-                const page = separator === -1 ? '' : key.slice(0, separator);
-                const type = separator === -1 ? '' : key.slice(separator + 1);
-                if (page && type) safeSetLocalStorage(`codespace_${page}_${type}`, getCode(page, type));
+        function flushCodeSavesOnPageExit() {
+            // Chỉ autosave khi trang thực sự rời đi/reload/đóng tab. Ghi lại
+            // toàn bộ editor để không phụ thuộc vào debounce cuối cùng.
+            ['p1', 'p2'].forEach(page => {
+                ['html', 'css', 'js', 'py', 'cpp'].forEach(type => {
+                    safeSetLocalStorage(`codespace_${page}_${type}`, getCode(page, type));
+                });
             });
-            typingTimers.clear();
+
+            // Không để timer Tự Chạy chạy thêm khi trang đang đóng.
+            autoRunTimers.forEach(timer => clearTimeout(timer));
+            autoRunTimers.clear();
         }
 
         function onCodeInput(page, type) {
             showSaveStatus();
-            const saveKey = `${page}:${type}`;
-            clearTimeout(typingTimers.get(saveKey));
-            typingTimers.set(saveKey, setTimeout(() => {
-                typingTimers.delete(saveKey);
-                safeSetLocalStorage(`codespace_${page}_${type}`, getCode(page, type));
-                if (isAutoRunEnabled) {
-                    runCode();
-                }
-            }, 600));
+
+            // Autosave không chạy theo từng phím nữa. Timer riêng này chỉ giữ
+            // nguyên tính năng Tự Chạy preview sau khi người dùng ngừng gõ.
+            const runKey = `${page}:${type}`;
+            clearTimeout(autoRunTimers.get(runKey));
+            autoRunTimers.delete(runKey);
+            if (isAutoRunEnabled) {
+                autoRunTimers.set(runKey, setTimeout(() => {
+                    autoRunTimers.delete(runKey);
+                    if (isAutoRunEnabled) runCode();
+                }, 600));
+            }
         }
 
-        window.addEventListener('pagehide', flushPendingCodeSaves);
+        window.addEventListener('pagehide', flushCodeSavesOnPageExit);
 
-        let saveStatusTimer = null;
         function showSaveStatus() {
             const indicator = document.getElementById('save-indicator');
             if (!indicator) return;
-            indicator.textContent = "Đang lưu...";
-            clearTimeout(saveStatusTimer);
-            saveStatusTimer = setTimeout(() => { indicator.textContent = "Đã lưu tự động"; }, 600);
+            indicator.textContent = "Đã thay đổi — sẽ tự động lưu khi thoát trang";
         }
 
         function changeFontSize(amount) {

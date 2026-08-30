@@ -6,7 +6,7 @@
 
 ## 1. Tổng quan
 
-- **Kích thước hiện tại:** ~8.370 dòng, ~494 KB.
+- **Kích thước hiện tại:** ~8.371 dòng, ~494 KB.
 - **Kiểm tra tự động sau khi sửa:**
   - `node --check` script chính → cú pháp JS **hợp lệ** ✅
   - Không có `id` trùng lặp (248/248 id duy nhất) ✅
@@ -96,7 +96,7 @@
 |---|---------|--------|---------------|
 | 1 | Khởi động | Tải **pyodide (~2.5MB) không dùng ở cấp ứng dụng** + `tesseract.js`/`html2canvas` tải sẵn từ đầu → trang mở rất chậm, bị chặn parse HTML | Bỏ hẳn pyodide ở app (iframe tự nạp khi chạy Python); `tesseract`/`html2canvas` → **lazy-load** đúng lúc dùng (OCR / chụp ảnh) qua `loadScriptOnce()`; thêm `defer` cho JSZip + Monaco loader để không chặn dựng trang |
 | 2 | Gõ code | `updateHttpsHighlighting()` quét toàn bộ code **mỗi keystroke** | Debounce 250ms **theo từng editor** (Map theo `getId()`) — highlight vẫn đủ, chỉ bớt việc quét liên tục |
-| 3 | Gõ code | `showSaveStatus()` tạo timeout mới mỗi phím (churn timer) | Dùng 1 timer dùng chung, `clearTimeout` trước khi set mới |
+| 3 | Gõ code | Autosave theo từng phím gây ghi `localStorage` liên tục và có thể tranh chấp timer với Tự Chạy | Chỉ autosave toàn bộ editor khi `pagehide`; timer Tự Chạy được tách riêng |
 | 4 | Chạy code | `runCode()` gán lại `srcdoc` kể cả khi source không đổi → iframe re-render thừa | Chỉ gán khi `viewer.srcdoc !== source` (không đổi hành vi, đỡ re-render lặp) |
 | 5 | Console | Bảng log phình vô hạn + `innerHTML.includes` quét toàn bộ mỗi dòng log → chậm dần O(n²) | Giữ tối đa **1500 dòng** (xóa dòng đầu khi vượt); kiểm tra dòng "Hệ thống..." qua `firstChild` thay vì quét toàn DOM |
 | 6 | Kéo khung AI web | `mousemove` set `style.width` mỗi event → nhiều layout/frame thừa | Throttle bằng `requestAnimationFrame` (chỉ 1 lần/frame), `endDrag` huỷ rAF đang chờ |
@@ -139,7 +139,7 @@ Các thay đổi dưới đây giữ nguyên các tính năng hiện có và ch�
 
 1. **Bảo vệ `postMessage`:** chỉ nhận log/video message từ `#viewer` và chỉ nhận `cf-api` từ hai iframe custom feature; kiểm tra cả `event.source` và origin. Website mở trong khung AI không còn tự ý gọi API nội bộ, sửa code hoặc tắt video ad.
 2. **Không phát tán credential custom server:** `CodeSpace.fetch()` không còn tự động gửi `Authorization`/extra headers tới URL tùy ý; gửi feature nội bộ vẫn giữ cơ chế auth cũ.
-3. **Autosave theo từng editor:** thay timer dùng chung bằng `Map` theo page/tab; thêm flush khi rời trang để tránh mất chỉnh sửa chưa kịp debounce.
+3. **Autosave chỉ khi rời trang:** khi đang gõ, code không còn ghi `localStorage` sau mỗi debounce; lúc `pagehide` toàn bộ editor được lưu một lần. Tính năng Tự Chạy vẫn dùng timer riêng và không bị thay đổi.
 4. **AI Result chống request trùng:** thao tác toggle/chuyển trang không còn tạo request AI trùng; request preview cũ được hủy khi có request mới hoặc khi tắt AI Result. Nút **Chạy** vẫn cho phép chạy lại cưỡng bức.
 5. **ZIP chạy được ngay:** entry point `index.html` và các entry page dùng source đã gộp, nhưng các file HTML/CSS/JS/Python/C++ riêng vẫn được giữ lại trong ZIP.
 6. **Tải ZIP bền hơn:** ZIP/PWA tự nạp JSZip dự phòng nếu CDN defer chưa kịp tải hoặc CDN chính lỗi.
