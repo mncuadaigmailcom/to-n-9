@@ -932,7 +932,7 @@
         .preview-device-viewport iframe { display: block; width: 100%; height: 100%; border: none; box-shadow: none; }
 
         .iframe-container.preview-mobile { background: radial-gradient(circle at center, #414b59 0%, #1a2028 72%); justify-content: center; align-items: center; padding: 8px; }
-        .preview-device-shell.mobile { width: min(390px, calc(100% - 4px)); height: min(780px, calc(100% - 4px)); flex: 0 1 auto; border: 4px solid #303a47; border-radius: 32px; box-shadow: 0 10px 26px rgba(0,0,0,0.46), inset 0 0 0 1px rgba(255,255,255,0.09); background: #080b10; }
+        .preview-device-shell.mobile { width: min(390px, calc(100% - 4px)); height: auto; max-width: 100%; max-height: 100%; aspect-ratio: 390 / 780; flex: 0 1 auto; border: 4px solid #303a47; border-radius: 32px; box-shadow: 0 10px 26px rgba(0,0,0,0.46), inset 0 0 0 1px rgba(255,255,255,0.09); background: #080b10; }
         .preview-device-shell.mobile::before { content: ''; position: absolute; z-index: 4; top: 0; left: 50%; width: 112px; height: 23px; transform: translateX(-50%); border-radius: 0 0 14px 14px; background: #080b10; box-shadow: 0 1px 0 rgba(255,255,255,0.04); pointer-events: none; }
         .preview-device-shell.mobile::after { content: ''; position: absolute; z-index: 5; left: 50%; bottom: 5px; width: 104px; height: 3px; transform: translateX(-50%); border-radius: 3px; background: rgba(255,255,255,0.78); box-shadow: 0 0 3px rgba(255,255,255,0.14); pointer-events: none; }
         .preview-phone-buttons { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
@@ -2128,6 +2128,7 @@
         let activeEditPage = 'p1';
         let activePreviewPage = 'p1';
         let previewMobileClockTimer = null;
+        let previewDeviceResizeObserver = null;
 
         let showLines = true;
         // Chỉ dùng các timer này cho tính năng Tự Chạy; autosave sẽ ghi khi rời trang.
@@ -6928,6 +6929,49 @@ ${cpp}`;
             previewMobileClockTimer = setInterval(updatePreviewMobileClock, 30000);
         }
 
+        function syncPreviewDeviceFrame() {
+            const wrapper = document.getElementById('iframe-wrapper');
+            const shell = document.getElementById('preview-device-shell');
+            if (!wrapper || !shell) return;
+
+            if (!shell.classList.contains('mobile')) {
+                shell.style.removeProperty('width');
+                shell.style.removeProperty('height');
+                shell.style.removeProperty('margin');
+                return;
+            }
+
+            // Trong Chia đôi, chiều cao khung kết quả nhỏ hơn chiều rộng. Tính
+            // lại cả hai chiều theo tỉ lệ điện thoại để khung không bị kéo dãn.
+            const wrapperStyle = window.getComputedStyle(wrapper);
+            const paddingX = (parseFloat(wrapperStyle.paddingLeft) || 0) + (parseFloat(wrapperStyle.paddingRight) || 0);
+            const paddingY = (parseFloat(wrapperStyle.paddingTop) || 0) + (parseFloat(wrapperStyle.paddingBottom) || 0);
+            const availableWidth = Math.max(1, wrapper.clientWidth - paddingX);
+            const availableHeight = Math.max(1, wrapper.clientHeight - paddingY);
+            const maxWidth = Math.min(390, availableWidth);
+            const maxHeight = Math.min(780, availableHeight);
+            const phoneRatio = 390 / 780;
+
+            let width = maxWidth;
+            let height = width / phoneRatio;
+            if (height > maxHeight) {
+                height = maxHeight;
+                width = height * phoneRatio;
+            }
+            shell.style.width = Math.max(1, Math.floor(width)) + 'px';
+            shell.style.height = Math.max(1, Math.floor(height)) + 'px';
+            shell.style.margin = '0';
+        }
+
+        function initPreviewDeviceResizeObserver() {
+            const wrapper = document.getElementById('iframe-wrapper');
+            if (!wrapper || typeof ResizeObserver === 'undefined') return;
+            if (previewDeviceResizeObserver) previewDeviceResizeObserver.disconnect();
+            previewDeviceResizeObserver = new ResizeObserver(syncPreviewDeviceFrame);
+            previewDeviceResizeObserver.observe(wrapper);
+            syncPreviewDeviceFrame();
+        }
+
         function setPreviewDevice(device) {
             const wrapper = document.getElementById('iframe-wrapper');
             const shell = document.getElementById('preview-device-shell');
@@ -6953,13 +6997,17 @@ ${cpp}`;
                 btnMobile.classList.remove('btn-active');
             }
 
-            // Monaco cần tính lại kích thước sau khi đổi viewport mô phỏng.
-            setTimeout(() => { if (editors[currentTab]) editors[currentTab].layout(); }, 50);
+            // Monaco và khung mô phỏng cần tính lại kích thước sau khi đổi viewport.
+            setTimeout(() => {
+                syncPreviewDeviceFrame();
+                if (editors[currentTab]) editors[currentTab].layout();
+            }, 50);
         }
 
         window.addEventListener('resize', () => {
             if (window.innerWidth <= 768 && document.body.className === 'layout-pc') changeLayoutMode('mobile');
             else if (window.innerWidth > 768 && document.body.className === 'layout-mobile') changeLayoutMode('pc');
+            syncPreviewDeviceFrame();
             if (editors[currentTab]) editors[currentTab].layout();
         });
 
@@ -7022,7 +7070,10 @@ ${cpp}`;
             const editorsPanel = document.getElementById('editors-panel'); const btnPC = document.getElementById('btn-layout-pc'); const btnMobile = document.getElementById('btn-layout-mobile');
             if (mode === 'pc') { document.body.className = "layout-pc"; editorsPanel.style.width = '50%'; editorsPanel.style.height = '100%'; btnPC.classList.add('btn-active'); btnMobile.classList.remove('btn-active'); }
             else { document.body.className = "layout-mobile"; editorsPanel.style.width = '100%'; editorsPanel.style.height = '50%'; btnMobile.classList.add('btn-active'); btnPC.classList.remove('btn-active'); }
-            setTimeout(() => { if (editors[currentTab]) editors[currentTab].layout(); }, 100);
+            setTimeout(() => {
+                syncPreviewDeviceFrame();
+                if (editors[currentTab]) editors[currentTab].layout();
+            }, 100);
         }
 
         const resizer = document.getElementById('drag-resizer'); const editorsPanel = document.getElementById('editors-panel'); let isDragging = false;
@@ -7041,7 +7092,7 @@ ${cpp}`;
             }
             if (editors[currentTab]) editors[currentTab].layout();
         }
-        function stopDrag() { if (isDragging) { isDragging = false; resizer.classList.remove('dragging'); document.getElementById('viewer').style.pointerEvents = 'auto'; if (editors[currentTab]) editors[currentTab].layout(); } }
+        function stopDrag() { if (isDragging) { isDragging = false; resizer.classList.remove('dragging'); document.getElementById('viewer').style.pointerEvents = 'auto'; syncPreviewDeviceFrame(); if (editors[currentTab]) editors[currentTab].layout(); } }
         resizer.addEventListener('mousedown', startDrag); document.addEventListener('mousemove', doDrag); document.addEventListener('mouseup', stopDrag); resizer.addEventListener('touchstart', startDrag); document.addEventListener('touchmove', doDrag); document.addEventListener('touchend', stopDrag);
 
         function resetWorkspace() {
@@ -7409,7 +7460,10 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 document.getElementById('btn-toggle-console').classList.add('btn-active');
             }
             else document.getElementById('mode-btn-split').classList.add('btn-active');
-            setTimeout(() => { if (editors[currentTab]) editors[currentTab].layout(); }, 150);
+            setTimeout(() => {
+                syncPreviewDeviceFrame();
+                if (editors[currentTab]) editors[currentTab].layout();
+            }, 150);
         }
 
         function showEditor(type) {
@@ -8298,6 +8352,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
 
         window.onload = () => {
             initPreviewMobileClock();
+            initPreviewDeviceResizeObserver();
             if(window.innerWidth <= 768) { changeLayoutMode('mobile'); } else { changeLayoutMode('pc'); } setMode('');
 
             adsLocation = localStorage.getItem('codespace_ads_location') || 'none';

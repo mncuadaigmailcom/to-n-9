@@ -6,7 +6,7 @@
 
 ## 1. Tổng quan
 
-- **Kích thước hiện tại:** ~8.472 dòng, ~504 KB.
+- **Kích thước hiện tại:** ~8.527 dòng, ~507 KB.
 - **Kiểm tra tự động sau khi sửa:**
   - `node --check` script chính → cú pháp JS **hợp lệ** ✅
   - Không có `id` trùng lặp (250/250 id duy nhất) ✅
@@ -147,5 +147,6 @@ Các thay đổi dưới đây giữ nguyên các tính năng hiện có và ch�
 8. **Ghi nhớ Auto-run:** trạng thái Tự Chạy được khôi phục sau khi reload.
 9. **Mở tab ngoài an toàn hơn:** các nút mở AI Web dùng `noopener,noreferrer`.
 10. **Mô phỏng thiết bị khi xem preview:** **Web Full** hiển thị khung trình duyệt máy tính với thanh điều khiển và viewport đầy đủ; **Khung ĐT** hiển thị vỏ điện thoại hoàn chỉnh hơn với viền mảnh, bóng đổ nhẹ, notch/camera, nút cạnh, đồng hồ, biểu tượng sóng/Wi-Fi/pin, thanh trình duyệt mobile và thanh Home. Iframe `#viewer` vẫn giữ nguyên để không ảnh hưởng chạy code, log, cuộn hoặc chụp kết quả.
+11. **Khung thiết bị trong Chia đôi:** tự tính lại chiều rộng/chiều cao theo tỉ lệ điện thoại khi panel kết quả bị thu nhỏ hoặc kéo resizer, tránh khung ĐT bị kéo dãn/cắt mất; Web Full vẫn phủ đúng vùng preview.
 
 **Kiểm chứng sau thay đổi:** `node --check` script chính PASS, `git diff --check` PASS, 250 ID vẫn duy nhất; không xóa tính năng hiện có, chỉ bổ sung giao diện mô phỏng thiết bị.
