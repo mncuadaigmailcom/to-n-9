@@ -907,19 +907,19 @@
         body.layout-mobile .box-viewer { width: 100%; flex: 1; }
         body.layout-mobile .resizer { height: 6px; width: 100%; cursor: row-resize; }
 
-        .editors { display: flex; flex-direction: column; background: #1e1e1e; position: relative; }
-        .box-viewer { background: white; z-index: 5; position: relative; display: flex; flex-direction: column; }
+        .editors { display: flex; flex-direction: column; background: #1e1e1e; position: relative; min-width: 0; min-height: 0; }
+        .box-viewer { background: white; z-index: 5; position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 
         .editor-container { flex: 1; display: none; width: 100%; height: 100%; position: absolute; top:0; left:0; }
         .editor-container.active { display: block; }
 
-        .iframe-container { flex: 1; position: relative; background: #0f141b; display: flex; justify-content: center; align-items: stretch; overflow: hidden; transition: background 0.3s; }
+        .iframe-container { flex: 1 1 0%; min-width: 0; min-height: 0; position: relative; background: #0f141b; display: flex; justify-content: center; align-items: stretch; overflow: hidden; transition: background 0.3s; }
         iframe { width: 100%; height: 100%; border: none; background: white; transition: all 0.3s ease; overflow: auto !important; -webkit-overflow-scrolling: touch; }
 
         /* Mô phỏng thiết bị cho hai chế độ Web Full / Khung ĐT. Iframe viewer
            vẫn giữ nguyên id và document để không ảnh hưởng chạy code, log hay chụp ảnh. */
         .preview-device-shell { position: relative; z-index: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
-        .preview-device-shell.desktop { width: calc(100% - 20px); height: calc(100% - 20px); margin: 10px; border: 1px solid #334155; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+        .preview-device-shell.desktop { width: calc(100% - 20px); height: calc(100% - 20px); max-width: 100%; max-height: 100%; margin: 10px; border: 1px solid #334155; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
         .preview-browser-chrome { flex: 0 0 38px; height: 38px; display: flex; align-items: center; gap: 10px; padding: 0 12px; background: linear-gradient(180deg, #202936, #151c26); border-bottom: 1px solid #334155; color: #94a3b8; font: 12px/1 sans-serif; user-select: none; }
         .preview-window-controls { display: flex; gap: 6px; flex: 0 0 auto; }
         .preview-window-controls i { display: block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
