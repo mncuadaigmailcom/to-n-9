@@ -931,15 +931,37 @@
         .preview-device-viewport { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; background: #fff; }
         .preview-device-viewport iframe { display: block; width: 100%; height: 100%; border: none; box-shadow: none; }
 
-        .iframe-container.preview-mobile { background: radial-gradient(circle at center, #3b4350 0%, #1b2028 72%); justify-content: center; align-items: center; padding: 12px; }
-        .preview-device-shell.mobile { width: min(390px, calc(100% - 4px)); height: min(780px, calc(100% - 4px)); flex: 0 1 auto; border: 8px solid #11151b; border-radius: 38px; box-shadow: 0 16px 38px rgba(0,0,0,0.62), 0 0 0 1px #566170; background: #080b10; }
-        .preview-device-shell.mobile::before { content: ''; position: absolute; z-index: 3; top: 0; left: 50%; width: 112px; height: 22px; transform: translateX(-50%); border-radius: 0 0 14px 14px; background: #080b10; pointer-events: none; }
-        .preview-device-shell.mobile::after { content: ''; position: absolute; z-index: 3; left: 50%; bottom: 6px; width: 112px; height: 4px; transform: translateX(-50%); border-radius: 4px; background: rgba(255,255,255,0.76); pointer-events: none; }
-        .preview-mobile-status { display: flex; align-items: center; justify-content: space-between; flex: 0 0 28px; height: 28px; padding: 4px 14px 2px; background: #080b10; color: #f8fafc; font: 700 10px/1 sans-serif; letter-spacing: 0.2px; user-select: none; }
-        .preview-mobile-status span:last-child { color: #cbd5e1; font-size: 9px; letter-spacing: 1px; }
-        .preview-device-shell.desktop .preview-mobile-status { display: none; }
+        .iframe-container.preview-mobile { background: radial-gradient(circle at center, #465160 0%, #1a2028 72%); justify-content: center; align-items: center; padding: 12px; }
+        .preview-device-shell.mobile { width: min(390px, calc(100% - 4px)); height: min(780px, calc(100% - 4px)); flex: 0 1 auto; border: 8px solid #11151b; border-radius: 42px; box-shadow: 0 18px 42px rgba(0,0,0,0.68), 0 0 0 1px #657181, inset 0 0 0 1px rgba(255,255,255,0.08); background: #080b10; }
+        .preview-device-shell.mobile::before { content: ''; position: absolute; z-index: 4; top: 0; left: 50%; width: 118px; height: 25px; transform: translateX(-50%); border-radius: 0 0 16px 16px; background: #080b10; box-shadow: 0 1px 0 rgba(255,255,255,0.04); pointer-events: none; }
+        .preview-device-shell.mobile::after { content: ''; position: absolute; z-index: 5; left: 50%; bottom: 6px; width: 116px; height: 4px; transform: translateX(-50%); border-radius: 4px; background: rgba(255,255,255,0.82); box-shadow: 0 0 4px rgba(255,255,255,0.18); pointer-events: none; }
+        .preview-phone-buttons { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
+        .preview-phone-buttons i { position: absolute; display: block; width: 3px; border-radius: 3px; background: linear-gradient(180deg, #667384, #202731); box-shadow: 0 1px 2px rgba(0,0,0,0.55); }
+        .preview-phone-buttons i:nth-child(1) { right: -1px; top: 104px; height: 58px; }
+        .preview-phone-buttons i:nth-child(2) { left: -1px; top: 96px; height: 36px; }
+        .preview-phone-buttons i:nth-child(3) { left: -1px; top: 144px; height: 50px; }
+        .preview-phone-camera { position: absolute; z-index: 5; top: 8px; left: 50%; width: 8px; height: 8px; transform: translateX(27px); border-radius: 50%; background: #1b2735; border: 2px solid #0a0d12; box-shadow: 0 0 0 1px rgba(125,211,252,0.22), inset 0 0 3px rgba(56,189,248,0.65); pointer-events: none; }
+        .preview-mobile-status { display: flex; align-items: center; justify-content: space-between; flex: 0 0 30px; height: 30px; padding: 6px 16px 3px; background: #080b10; color: #f8fafc; font: 700 10px/1 sans-serif; letter-spacing: 0.2px; user-select: none; }
+        .preview-mobile-status-icons { display: flex; align-items: center; gap: 6px; height: 12px; color: #f8fafc; }
+        .preview-mobile-status-icons i { position: relative; display: block; flex: 0 0 auto; }
+        .mobile-signal { width: 14px; height: 10px; }
+        .mobile-signal::before { content: ''; position: absolute; left: 0; bottom: 0; width: 3px; height: 4px; border-radius: 1px 1px 0 0; background: #f8fafc; box-shadow: 4px -2px 0 #f8fafc, 8px -4px 0 #f8fafc, 12px -6px 0 #f8fafc; }
+        .mobile-wifi { width: 14px; height: 10px; border: 2px solid transparent; border-top-color: #f8fafc; border-radius: 50% 50% 0 0; transform: translateY(2px); }
+        .mobile-wifi::before { content: ''; position: absolute; left: 2px; top: -1px; width: 6px; height: 5px; border: 2px solid transparent; border-top-color: #f8fafc; border-radius: 50% 50% 0 0; }
+        .mobile-wifi::after { content: ''; position: absolute; left: 5px; top: 3px; width: 3px; height: 3px; border-radius: 50%; background: #f8fafc; }
+        .mobile-battery { width: 18px; height: 9px; border: 1px solid #f8fafc; border-radius: 2px; }
+        .mobile-battery::before { content: ''; position: absolute; left: 2px; top: 2px; width: 11px; height: 3px; border-radius: 1px; background: #f8fafc; }
+        .mobile-battery::after { content: ''; position: absolute; right: -3px; top: 2px; width: 2px; height: 3px; border-radius: 0 1px 1px 0; background: #f8fafc; }
+        .preview-mobile-browser-bar { display: flex; align-items: center; justify-content: space-around; flex: 0 0 34px; height: 34px; padding: 0 24px 3px; background: rgba(248,250,252,0.97); border-top: 1px solid #cbd5e1; color: #475569; font: 22px/1 sans-serif; user-select: none; }
+        .preview-mobile-browser-bar span { min-width: 24px; text-align: center; }
+        .preview-mobile-browser-bar span:first-child, .preview-mobile-browser-bar span:nth-child(2) { color: #94a3b8; }
+        .preview-mobile-browser-bar .mobile-browser-tabs { font-size: 17px; font-weight: 700; }
+        .preview-device-shell.desktop .preview-mobile-status,
+        .preview-device-shell.desktop .preview-mobile-browser-bar,
+        .preview-device-shell.desktop .preview-phone-buttons,
+        .preview-device-shell.desktop .preview-phone-camera { display: none; }
         .preview-device-shell.mobile .preview-browser-chrome { display: none; }
-        .preview-device-shell.mobile .preview-device-viewport { border-radius: 22px 22px 24px 24px; }
+        .preview-device-shell.mobile .preview-device-viewport { border-radius: 0; }
         .preview-device-shell.mobile .preview-device-viewport iframe { width: 100%; height: 100%; }
         .iframe-container.preview-desktop { background: #0f141b; }
 
@@ -1351,8 +1373,14 @@
                         <div class="preview-browser-address"><strong>●</strong><span>CodeSpace Web Preview</span></div>
                         <div class="preview-browser-actions">⋮</div>
                     </div>
-                    <div class="preview-mobile-status" aria-hidden="true"><span>9:41</span><span>▮▮▮  Wi-Fi  ▰</span></div>
+                    <div class="preview-phone-buttons" aria-hidden="true"><i></i><i></i><i></i></div>
+                    <div class="preview-phone-camera" aria-hidden="true"></div>
+                    <div class="preview-mobile-status" aria-hidden="true">
+                        <span id="preview-mobile-clock">09:41</span>
+                        <span class="preview-mobile-status-icons"><i class="mobile-signal"></i><i class="mobile-wifi"></i><i class="mobile-battery"></i></span>
+                    </div>
                     <div class="preview-device-viewport"><iframe id="viewer"></iframe></div>
+                    <div class="preview-mobile-browser-bar" aria-hidden="true"><span>‹</span><span>›</span><span class="mobile-browser-tabs">□</span><span>⋯</span></div>
                 </div>
             </div>
 
@@ -2099,6 +2127,7 @@
 
         let activeEditPage = 'p1';
         let activePreviewPage = 'p1';
+        let previewMobileClockTimer = null;
 
         let showLines = true;
         // Chỉ dùng các timer này cho tính năng Tự Chạy; autosave sẽ ghi khi rời trang.
@@ -6885,6 +6914,20 @@ ${cpp}`;
             }
         }
 
+        function updatePreviewMobileClock() {
+            const clock = document.getElementById('preview-mobile-clock');
+            if (!clock) return;
+            const now = new Date();
+            const pad = value => String(value).padStart(2, '0');
+            clock.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes());
+        }
+
+        function initPreviewMobileClock() {
+            updatePreviewMobileClock();
+            if (previewMobileClockTimer) clearInterval(previewMobileClockTimer);
+            previewMobileClockTimer = setInterval(updatePreviewMobileClock, 30000);
+        }
+
         function setPreviewDevice(device) {
             const wrapper = document.getElementById('iframe-wrapper');
             const shell = document.getElementById('preview-device-shell');
@@ -8254,6 +8297,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
         });
 
         window.onload = () => {
+            initPreviewMobileClock();
             if(window.innerWidth <= 768) { changeLayoutMode('mobile'); } else { changeLayoutMode('pc'); } setMode('');
 
             adsLocation = localStorage.getItem('codespace_ads_location') || 'none';

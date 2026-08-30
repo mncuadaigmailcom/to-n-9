@@ -6,11 +6,11 @@
 
 ## 1. Tổng quan
 
-- **Kích thước hiện tại:** ~8.428 dòng, ~500 KB.
+- **Kích thước hiện tại:** ~8.472 dòng, ~504 KB.
 - **Kiểm tra tự động sau khi sửa:**
   - `node --check` script chính → cú pháp JS **hợp lệ** ✅
-  - Không có `id` trùng lặp (249/249 id duy nhất) ✅
-  - HTML cân bằng thẻ: `<div>` 323/323, `<select>` 13/13, `<span>` 60/60 ✅
+  - Không có `id` trùng lặp (250/250 id duy nhất) ✅
+  - HTML cân bằng thẻ: `<div>` 326/326, `<select>` 13/13, `<span>` 64/64 ✅
   - Mọi hàm gọi trong `onclick/onchange/onkeydown...` đều tồn tại ✅
   - `getElementById(...)` trỏ tới phần tử tồn tại ✅
 
@@ -104,7 +104,7 @@
 | 8 | Gộp tính năng | Ô tìm kiếm render lại toàn bộ danh sách mỗi keystroke | Debounce 150ms qua `scheduleComboFeaturePickerRender()` |
 
 **Kiểm chứng (đều PASS):**
-- `node --check` hợp lệ; 249 id duy nhất; thẻ cân bằng (`div` 323/323, `select` 13/13, `span` 60/60, `iframe` 4/4); mọi handler & `getElementById` tồn tại.
+- `node --check` hợp lệ; 250 id duy nhất; thẻ cân bằng (`div` 326/326, `select` 13/13, `span` 64/64, `iframe` 4/4); mọi handler & `getElementById` tồn tại.
 - Mô phỏng Node: `runCode` chỉ gán srcdoc khi khác (3 lần gọi → 1 lần gán); `webUrlLog` rút gọn đúng (~12.350 ký tự sau 3000 dòng) + đồng bộ khi bị ghi đè ngoài; console giữ đúng 1500 dòng; lazy-loader chỉ chèn 1 script, lỗi thì reject và tải lại được; highlight debounce gõ liên tục chỉ chạy 1 lần/250ms/editor.
 - Tính năng giữ nguyên: pyodide & JSCPP vẫn được nhúng trong trang kết quả, JSZip vẫn hoạt động, OCR/chụp ảnh có fallback thông báo khi không tải được thư viện.
 
@@ -146,6 +146,6 @@ Các thay đổi dưới đây giữ nguyên các tính năng hiện có và ch�
 7. **PWA escape tên app:** tên app trong `<title>` và meta tag được escape đầy đủ.
 8. **Ghi nhớ Auto-run:** trạng thái Tự Chạy được khôi phục sau khi reload.
 9. **Mở tab ngoài an toàn hơn:** các nút mở AI Web dùng `noopener,noreferrer`.
-10. **Mô phỏng thiết bị khi xem preview:** **Web Full** hiển thị khung trình duyệt máy tính với thanh điều khiển và viewport đầy đủ; **Khung ĐT** hiển thị vỏ điện thoại, notch, thanh trạng thái và thanh Home. Iframe `#viewer` vẫn giữ nguyên để không ảnh hưởng chạy code, log, cuộn hoặc chụp kết quả.
+10. **Mô phỏng thiết bị khi xem preview:** **Web Full** hiển thị khung trình duyệt máy tính với thanh điều khiển và viewport đầy đủ; **Khung ĐT** hiển thị vỏ điện thoại hoàn chỉnh hơn với notch/camera, nút cạnh, đồng hồ, biểu tượng sóng/Wi-Fi/pin, thanh trình duyệt mobile và thanh Home. Iframe `#viewer` vẫn giữ nguyên để không ảnh hưởng chạy code, log, cuộn hoặc chụp kết quả.
 
-**Kiểm chứng sau thay đổi:** `node --check` script chính PASS, `git diff --check` PASS, 249 ID vẫn duy nhất; không xóa tính năng hiện có, chỉ bổ sung giao diện mô phỏng thiết bị.
+**Kiểm chứng sau thay đổi:** `node --check` script chính PASS, `git diff --check` PASS, 250 ID vẫn duy nhất; không xóa tính năng hiện có, chỉ bổ sung giao diện mô phỏng thiết bị.
