@@ -1,17 +1,17 @@
-# Báo cáo phân tích & tìm lỗi — `to-n-9/index.html` (đã sửa toàn bộ ✅)
+# Báo cáo phân tích & tìm lỗi — `to-n-9/index.html` (đã sửa các lỗi đã xác nhận ✅)
 
-> Cập nhật lần cuối: **tất cả 6 lỗi đã được sửa và kiểm chứng** (xem mục 3). Mục 2 giữ lại mô tả lỗi gốc để đối chiếu.
+> Cập nhật lần cuối: **6 lỗi ban đầu và các lỗi bổ sung đã được sửa/kiểm chứng**. Mục 2 giữ lại mô tả lỗi gốc để đối chiếu.
 
 ---
 
 ## 1. Tổng quan
 
-- **Kích thước hiện tại:** ~6.850 dòng, ~395 KB.
+- **Kích thước hiện tại:** ~8.370 dòng, ~494 KB.
 - **Kiểm tra tự động sau khi sửa:**
   - `node --check` script chính → cú pháp JS **hợp lệ** ✅
-  - Không có `id` trùng lặp (206/206 id duy nhất) ✅
-  - HTML cân bằng thẻ: `<div>` 263/263, `<select>` 12/12, `<span>` 48/48 ✅
-  - Mọi hàm gọi trong `onclick/onchange/onkeypress...` đều tồn tại ✅
+  - Không có `id` trùng lặp (248/248 id duy nhất) ✅
+  - HTML cân bằng thẻ: `<div>` 316/316, `<select>` 13/13, `<span>` 57/57 ✅
+  - Mọi hàm gọi trong `onclick/onchange/onkeydown...` đều tồn tại ✅
   - `getElementById(...)` trỏ tới phần tử tồn tại ✅
 
 ---
@@ -104,7 +104,7 @@
 | 8 | Gộp tính năng | Ô tìm kiếm render lại toàn bộ danh sách mỗi keystroke | Debounce 150ms qua `scheduleComboFeaturePickerRender()` |
 
 **Kiểm chứng (đều PASS):**
-- `node --check` hợp lệ; 206 id duy nhất; thẻ cân bằng (`div` 263/263, `select` 12/12, `span` 48/48, `iframe` 2/2); mọi handler & `getElementById` tồn tại.
+- `node --check` hợp lệ; 248 id duy nhất; thẻ cân bằng (`div` 316/316, `select` 13/13, `span` 57/57, `iframe` 4/4); mọi handler & `getElementById` tồn tại.
 - Mô phỏng Node: `runCode` chỉ gán srcdoc khi khác (3 lần gọi → 1 lần gán); `webUrlLog` rút gọn đúng (~12.350 ký tự sau 3000 dòng) + đồng bộ khi bị ghi đè ngoài; console giữ đúng 1500 dòng; lazy-loader chỉ chèn 1 script, lỗi thì reject và tải lại được; highlight debounce gõ liên tục chỉ chạy 1 lần/250ms/editor.
 - Tính năng giữ nguyên: pyodide & JSCPP vẫn được nhúng trong trang kết quả, JSZip vẫn hoạt động, OCR/chụp ảnh có fallback thông báo khi không tải được thư viện.
 
@@ -130,3 +130,21 @@
 
 **Kiểm chứng (jsdom + fetch mock, đều PASS):**
 - Chat trả lời đúng; lỗi CORS → thông báo có hướng dẫn (không "❌ ❌" kép); Gemini 403 vùng → có hint Việt Nam; có proxy + lỗi trực tiếp → tự gọi proxy thành công; Enter (keydown) gửi tin nhắn; nút kiểm tra kết nối hiện kết quả đúng; `node --check` PASS; id duy nhất, thẻ cân bằng.
+
+---
+
+## 7. Sửa bổ sung trong phiên hiện tại
+
+Các thay đổi dưới đây giữ nguyên các tính năng hiện có và chỉ bổ sung kiểm tra/an toàn hoặc sửa hành vi lỗi:
+
+1. **Bảo vệ `postMessage`:** chỉ nhận log/video message từ `#viewer` và chỉ nhận `cf-api` từ hai iframe custom feature; kiểm tra cả `event.source` và origin. Website mở trong khung AI không còn tự ý gọi API nội bộ, sửa code hoặc tắt video ad.
+2. **Không phát tán credential custom server:** `CodeSpace.fetch()` không còn tự động gửi `Authorization`/extra headers tới URL tùy ý; gửi feature nội bộ vẫn giữ cơ chế auth cũ.
+3. **Autosave theo từng editor:** thay timer dùng chung bằng `Map` theo page/tab; thêm flush khi rời trang để tránh mất chỉnh sửa chưa kịp debounce.
+4. **AI Result chống request trùng:** thao tác toggle/chuyển trang không còn tạo request AI trùng; request preview cũ được hủy khi có request mới hoặc khi tắt AI Result. Nút **Chạy** vẫn cho phép chạy lại cưỡng bức.
+5. **ZIP chạy được ngay:** entry point `index.html` và các entry page dùng source đã gộp, nhưng các file HTML/CSS/JS/Python/C++ riêng vẫn được giữ lại trong ZIP.
+6. **Tải ZIP bền hơn:** ZIP/PWA tự nạp JSZip dự phòng nếu CDN defer chưa kịp tải hoặc CDN chính lỗi.
+7. **PWA escape tên app:** tên app trong `<title>` và meta tag được escape đầy đủ.
+8. **Ghi nhớ Auto-run:** trạng thái Tự Chạy được khôi phục sau khi reload.
+9. **Mở tab ngoài an toàn hơn:** các nút mở AI Web dùng `noopener,noreferrer`.
+
+**Kiểm chứng sau thay đổi:** `node --check` script chính PASS, `git diff --check` PASS, 248 ID vẫn duy nhất, không thêm/xóa tính năng UI.
