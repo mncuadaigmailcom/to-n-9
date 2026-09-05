@@ -986,8 +986,14 @@
         }
 
         .page-switch-group { display: inline-flex; gap: 4px; align-items: center; }
-        .bot-mode-tab { flex: 1; padding: 8px; font-size: 0.75rem; background: #29292e; border: 1px solid #424242; color: #e1e1e6; }
-        .bot-mode-tab.active { background: #00b0ff !important; color: #fff !important; border-color: #00b0ff !important; }
+        .bot-modal-content { width: 480px !important; max-width: 95% !important; max-height: 90vh !important; overflow-y: auto !important; box-sizing: border-box !important; }
+        .bot-mode-tabs-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+        .bot-mode-tab { width: 100%; padding: 8px 4px; font-size: 0.75rem; background: #29292e; border: 1px solid #424242; color: #e1e1e6; border-radius: 4px; cursor: pointer; text-align: center; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 3px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bot-mode-tab.active { background: #00b0ff !important; color: #fff !important; border-color: #00b0ff !important; font-weight: bold; }
+        @media (max-width: 440px) {
+            .bot-mode-tabs-container { grid-template-columns: 1fr; gap: 5px; }
+            .bot-mode-tab { font-size: 0.8rem; padding: 8px; }
+        }
 
         .toolbar { perspective: 700px; }
 
@@ -1848,9 +1854,9 @@
 
     <!-- Modal Boss Bot GitHub -->
     <div id="bot-modal" class="modal-overlay" onclick="toggleBotModal(false)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-content bot-modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3 style="color:#00d2ff;">🤖 Boss Bot GitHub Tự Động</h3>
+                <h3 style="color:#00d2ff; display:flex; align-items:center; gap:8px;">🤖 Boss Bot GitHub Tự Động</h3>
                 <button class="modal-close" onclick="toggleBotModal(false)">✖</button>
             </div>
 
@@ -1860,10 +1866,10 @@
                 <span style="font-size:0.7rem; color:#888;">Cần quyền scope: <b>repo</b></span>
             </div>
 
-            <div style="display: flex; gap: 6px; margin-bottom: 15px;">
-                <button id="btn-bot-mode-create" class="bot-mode-tab active" onclick="switchBotMode('create')">➕ 1. Tạo Web Mới</button>
-                <button id="btn-bot-mode-edit" class="bot-mode-tab" onclick="switchBotMode('edit')">✏️ 2. Sửa Web Cũ</button>
-                <button id="btn-bot-mode-script" class="bot-mode-tab" onclick="switchBotMode('script')">⚡ 3. Tạo Script (Link CDN)</button>
+            <div class="bot-mode-tabs-container">
+                <button id="btn-bot-mode-create" class="bot-mode-tab active" onclick="switchBotMode('create')" title="Tạo Web Mới">➕ Tạo Web Mới</button>
+                <button id="btn-bot-mode-edit" class="bot-mode-tab" onclick="switchBotMode('edit')" title="Sửa Web Cũ">✏️ Sửa Web Cũ</button>
+                <button id="btn-bot-mode-script" class="bot-mode-tab" onclick="switchBotMode('script')" title="Tạo Script Link CDN">⚡ Tạo Script CDN</button>
             </div>
 
             <div id="bot-sec-create">
@@ -1922,13 +1928,13 @@
 
             <div id="bot-logs" class="bot-status-box">🤖 Boss Bot sẵn sàng nhận lệnh...</div>
 
-            <div id="bot-link-box" style="display:none; margin-top:10px; background:#1a1a1e; border:1px solid #00d2ff; border-radius:6px; padding:8px; align-items:center; gap:6px;">
+            <div id="bot-link-box" style="display:none; margin-top:10px; background:#1a1a1e; border:1px solid #00d2ff; border-radius:6px; padding:8px; align-items:center; gap:6px; box-sizing:border-box; width:100%; max-width:100%;">
                 <span style="font-size:0.75rem; color:#888; flex-shrink:0;">🌐 Link Web:</span>
                 <input id="bot-link-input" type="text" readonly style="flex:1; min-width:0; background:transparent; border:none; color:#00d2ff; font-size:0.75rem; outline:none;" onclick="this.select();" />
                 <button type="button" style="flex-shrink:0; padding:6px 10px; background:linear-gradient(135deg, #6e40c9, #00d2ff); border:none; color:white; border-radius:4px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="copyBotSiteLink()">📋 Copy</button>
             </div>
 
-            <div id="bot-script-link-box" style="display:none; margin-top:10px; background:#121824; border:1px solid #10b981; border-radius:6px; padding:10px; flex-direction:column; gap:8px;">
+            <div id="bot-script-link-box" style="display:none; margin-top:10px; background:#121824; border:1px solid #10b981; border-radius:6px; padding:10px; flex-direction:column; gap:8px; box-sizing:border-box; width:100%; max-width:100%;">
                 <div style="font-size:0.8rem; font-weight:bold; color:#10b981; display:flex; align-items:center; gap:6px;">
                     <span>🎉 Link Script CDN Đã Hoạt Động!</span>
                 </div>
