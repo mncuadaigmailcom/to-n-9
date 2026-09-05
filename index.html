@@ -20,7 +20,7 @@
     <!-- Thư viện CDN (defer: không chặn dựng trang; thư viện nặng được tải theo nhu cầu) -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
-    <!-- html2canvas + tesseract.js được tải lazy khi dùng tới (chụp ảnh / OCR). pyodide chỉ dùng trong trang kết quả do iframe tự nạp. -->
+    <!-- html2canvas + tesseract.js được tải lazy khi dùng tới (chụp ảnh / OCR). -->
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -636,8 +636,6 @@
         .code-lang-badge.lang-html { background: #e34c26; color: #fff; }
         .code-lang-badge.lang-css  { background: #2965f1; color: #fff; }
         .code-lang-badge.lang-js   { background: #f0db4f; color: #222; }
-        .code-lang-badge.lang-py   { background: #3572A5; color: #fff; }
-        .code-lang-badge.lang-cpp  { background: #004482; color: #fff; }
         .code-block-wrap pre {
             border-radius: 0 !important;
         }
@@ -988,8 +986,14 @@
         }
 
         .page-switch-group { display: inline-flex; gap: 4px; align-items: center; }
-        .bot-mode-tab { flex: 1; padding: 8px; font-size: 0.75rem; background: #29292e; border: 1px solid #424242; color: #e1e1e6; }
-        .bot-mode-tab.active { background: #00b0ff !important; color: #fff !important; border-color: #00b0ff !important; }
+        .bot-modal-content { width: 500px !important; max-width: 95% !important; max-height: 90vh !important; overflow-y: auto !important; box-sizing: border-box !important; }
+        .bot-mode-tabs-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+        .bot-mode-tab { width: 100%; padding: 8px 2px; font-size: 0.72rem; background: #29292e; border: 1px solid #424242; color: #e1e1e6; border-radius: 4px; cursor: pointer; text-align: center; box-sizing: border-box; display: flex; align-items: center; justify-content: center; gap: 2px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bot-mode-tab.active { background: #00b0ff !important; color: #fff !important; border-color: #00b0ff !important; font-weight: bold; }
+        @media (max-width: 480px) {
+            .bot-mode-tabs-container { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .bot-mode-tab { font-size: 0.76rem; padding: 8px 4px; }
+        }
 
         .toolbar { perspective: 700px; }
 
@@ -1013,11 +1017,10 @@
             box-shadow: 0 8px 18px rgba(0,0,0,0.4), 0 0 16px rgba(0,176,255,0.25);
         }
 
-        #tab-html, #tab-css, #tab-js, #tab-py, #tab-cpp {
+        #tab-html, #tab-css, #tab-js {
             transform-style: preserve-3d;
         }
-        #tab-html.btn-active, #tab-css.btn-active, #tab-js.btn-active,
-        #tab-py.btn-active, #tab-cpp.btn-active {
+        #tab-html.btn-active, #tab-css.btn-active, #tab-js.btn-active {
             transform: translateY(-1px) translateZ(0);
             box-shadow: 0 4px 10px rgba(0,176,255,0.35), inset 0 0 0 1px rgba(255,255,255,0.08);
         }
@@ -1128,8 +1131,6 @@
         <button id="tab-html" class="btn-active" onclick="showEditor('html')">HTML</button>
         <button id="tab-css" onclick="showEditor('css')">CSS</button>
         <button id="tab-js" onclick="showEditor('js')">JS</button>
-        <button id="tab-py" onclick="showEditor('py')" style="background: #3776ab; color: #ffd343;">🐍 Python</button>
-        <button id="tab-cpp" onclick="showEditor('cpp')" style="background: #004482; color: #00b0ff;">⚙️ C++</button>
         <span class="divider">|</span>
 
         <button id="btn-search-toggle" class="btn-toggle-ui" onclick="toggleSearchBar()" style="background:#5e35b1; font-weight:bold;">🔍 Tìm & Đổi</button>
@@ -1164,7 +1165,7 @@
             <div id="download-menu" class="dropdown-menu">
                 <button id="btn-dl-p1" onclick="downloadFullHTML('p1')">📄 File gộp (Trang Web 1)</button>
                 <button id="btn-dl-p2" onclick="downloadFullHTML('p2')">📄 File gộp (Trang Web 2)</button>
-                <button id="btn-dl-separate" onclick="downloadSeparateFiles()">📑 Các file riêng (.html, .css, .js, .py, .cpp)</button>
+                <button id="btn-dl-separate" onclick="downloadSeparateFiles()">📑 Các file riêng (.html, .css, .js)</button>
                 <button id="btn-dl-zip" onclick="downloadZip()">🗜️ Gói ZIP (cả project)</button>
             </div>
         </div>
@@ -1172,8 +1173,8 @@
         <div class="dropdown-wrap copy-code-wrap">
             <button class="btn-save" onclick="toggleCopyCodeMenu(event)">📋 Sao Chép Code <span class="dropdown-caret">▼</span></button>
             <div id="copy-code-menu" class="dropdown-menu">
-                <button id="btn-copy-text" onclick="copyAllCodeAsText()">📄 Sao chép bằng chữ (HTML+CSS+JS+Python+C++)</button>
-                <button id="btn-copy-file" onclick="copyAllCodeAsFile()">💾 Sao chép bằng file (.html, .css, .js, .py, .cpp)</button>
+                <button id="btn-copy-text" onclick="copyAllCodeAsText()">📄 Sao chép bằng chữ (HTML+CSS+JS)</button>
+                <button id="btn-copy-file" onclick="copyAllCodeAsFile()">💾 Sao chép bằng file (.html, .css, .js)</button>
             </div>
         </div>
 
@@ -1186,12 +1187,12 @@
 
         <button id="btn-import-file" class="btn-import" onclick="triggerFileInput()">📂 NHẬP FILE</button>
         <button id="btn-import-folder" class="btn-import" onclick="triggerFolderInput()">📁 NHẬP THƯ MỤC</button>
-        <input type="file" id="file-input" accept=".html,.htm,.vue,.mht,.mhtml,.txt,.css,.scss,.sass,.less,.js,.jsx,.ts,.tsx,.mjs,.cjs,.py,.pyw,.ipynb,.json,.xml,.svg,.md,.yaml,.yml,.csv,.tsv,.log,.ini,.env,.zip,.png,.jpg,.jpeg,.gif,.webp,.bmp,.ico,.woff,.woff2,.ttf,.otf" multiple style="display:none;" onchange="importFile(this)">
+        <input type="file" id="file-input" accept=".html,.htm,.vue,.mht,.mhtml,.txt,.css,.scss,.sass,.less,.js,.jsx,.ts,.tsx,.mjs,.cjs,.json,.xml,.svg,.md,.yaml,.yml,.csv,.tsv,.log,.ini,.env,.zip,.png,.jpg,.jpeg,.gif,.webp,.bmp,.ico,.woff,.woff2,.ttf,.otf" multiple style="display:none;" onchange="importFile(this)">
         <input type="file" id="folder-input" webkitdirectory directory multiple style="display:none;" onchange="importFile(this)">
         <button id="btn-open-settings" onclick="toggleSettingsModal(true)">⚙️ Cài Đặt</button>
 
         <button id="btn-run-code" class="btn-run" onclick="runCode()">Chạy ▶</button>
-        <button id="btn-toggle-ai-result" class="btn-ai-result" onclick="toggleAIResultFeature()" title="Khi bật: nút Chạy sẽ gửi code cho AI chuyển đổi Python/C++ thành HTML/JS thật.">🤖 Kết Quả AI: TẮT</button>
+        <button id="btn-toggle-ai-result" class="btn-ai-result" onclick="toggleAIResultFeature()" title="Khi bật: nút Chạy sẽ gửi code cho AI tối ưu và render HTML/JS thật.">🤖 Kết Quả AI: TẮT</button>
         <button id="btn-hide-toolbar" class="btn-toggle-ui" onclick="toggleToolbar(false)" style="background: #b71c1c;">🚫 Ẩn</button>
         <div id="save-indicator" class="autosave-status">Đã lưu tự động</div>
     </div>
@@ -1235,7 +1236,7 @@
                 <button type="button" class="ai-mode-toggle" data-mode="deep" onclick="toggleAIAssistantMode('deep')" aria-pressed="false" title="Phân tích kỹ, kiểm tra lỗi">🧠 Suy nghĩ sâu</button>
                 <button type="button" class="ai-mode-toggle" data-mode="code" onclick="toggleAIAssistantMode('code')" aria-pressed="false" title="Ưu tiên viết code hoàn chỉnh">💻 Code</button>
             </div>
-            <div id="ai-autoinsert-bar" class="ai-autoinsert-bar" title="Khi BẬT: code AI trả về trong chat sẽ TỰ ĐỘNG xóa code cũ và nhập thẳng vào đúng tab tương ứng (HTML/CSS/JS/Python/C++)">
+            <div id="ai-autoinsert-bar" class="ai-autoinsert-bar" title="Khi BẬT: code AI trả về trong chat sẽ TỰ ĐỘNG xóa code cũ và nhập thẳng vào đúng tab tương ứng (HTML/CSS/JS)">
                 <span class="ai-mode-label">📥 NHẬP CODE AI:</span>
                 <button type="button" id="btn-ai-autoinsert" class="btn-ai-autoinsert" onclick="toggleAIAutoInsert()" aria-pressed="false">Tự Động Nhập: TẮT</button>
             </div>
@@ -1313,8 +1314,6 @@
             <div id="container-html" class="editor-container active"></div>
             <div id="container-css" class="editor-container"></div>
             <div id="container-js" class="editor-container"></div>
-            <div id="container-py" class="editor-container"></div>
-            <div id="container-cpp" class="editor-container"></div>
         </div>
         <div id="drag-resizer" class="resizer"></div>
         <div id="result-viewer" class="box-viewer">
@@ -1367,7 +1366,7 @@
             </div>
 
             <div class="save-slot-counter">
-                <span>Đang dùng <b id="save-slot-used">0</b>/5 ô lưu — mỗi bản lưu gồm đủ HTML, CSS, JS, Python, C++ của cả Trang 1 &amp; Trang 2.</span>
+                <span>Đang dùng <b id="save-slot-used">0</b>/5 ô lưu — mỗi bản lưu gồm đủ HTML, CSS, JS của cả Trang 1 &amp; Trang 2.</span>
             </div>
 
             <div id="save-slot-list" class="save-slot-list"></div>
@@ -1855,9 +1854,9 @@
 
     <!-- Modal Boss Bot GitHub -->
     <div id="bot-modal" class="modal-overlay" onclick="toggleBotModal(false)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-content bot-modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <h3 style="color:#00d2ff;">🤖 Boss Bot GitHub Tự Động</h3>
+                <h3 style="color:#00d2ff; display:flex; align-items:center; gap:8px;">🤖 Boss Bot GitHub Tự Động</h3>
                 <button class="modal-close" onclick="toggleBotModal(false)">✖</button>
             </div>
 
@@ -1867,9 +1866,11 @@
                 <span style="font-size:0.7rem; color:#888;">Cần quyền scope: <b>repo</b></span>
             </div>
 
-            <div style="display: flex; gap: 6px; margin-bottom: 15px;">
-                <button id="btn-bot-mode-create" class="bot-mode-tab active" onclick="switchBotMode('create')">➕ 1. Tạo Web Mới</button>
-                <button id="btn-bot-mode-edit" class="bot-mode-tab" onclick="switchBotMode('edit')">✏️ 2. Sửa Web Cũ</button>
+            <div class="bot-mode-tabs-container">
+                <button id="btn-bot-mode-create" class="bot-mode-tab active" onclick="switchBotMode('create')" title="Tạo Web Mới">➕ Tạo Web</button>
+                <button id="btn-bot-mode-edit" class="bot-mode-tab" onclick="switchBotMode('edit')" title="Sửa Web Cũ">✏️ Sửa Web</button>
+                <button id="btn-bot-mode-script" class="bot-mode-tab" onclick="switchBotMode('script')" title="Tạo Script Mới">⚡ Tạo Script</button>
+                <button id="btn-bot-mode-edit-script" class="bot-mode-tab" onclick="switchBotMode('edit-script')" title="Sửa Script Cũ">🔄 Sửa Script</button>
             </div>
 
             <div id="bot-sec-create">
@@ -1905,12 +1906,80 @@
                 <button class="btn-bot-github" style="width:100%; padding:10px; font-size:0.9rem; background: linear-gradient(135deg, #f57c00, #ffb300) !important;" onclick="updateSelectedRepo()">✏️ SỬA / CẬP NHẬT KHO LƯU TRỮ NÀY</button>
             </div>
 
+            <div id="bot-sec-script" style="display:none;">
+                <div class="setting-item">
+                    <label for="github-script-repo">Tên Repository (Kho chứa Script):</label>
+                    <input type="text" id="github-script-repo" value="my-scripts" placeholder="my-scripts" />
+                    <span style="font-size:0.7rem; color:#888;">Kho chứa sẽ được tự động tạo mới nếu chưa tồn tại</span>
+                </div>
+                <div class="setting-item">
+                    <label for="github-script-filename">Tên File Script (.js):</label>
+                    <input type="text" id="github-script-filename" value="script.js" placeholder="script.js hoặc app.js, widget.js..." />
+                </div>
+                <div class="setting-item">
+                    <label for="github-script-source">Nội dung Script muốn tạo link:</label>
+                    <select id="github-script-source">
+                        <option value="p1_js">⚡ JS Trang 1 (Mã JavaScript đang viết)</option>
+                        <option value="p2_js">⚡ JS Trang 2 (Nếu đang dùng Trang 2)</option>
+                        <option value="p1_bundle">📦 Gói Tự Chạy (Tự nhúng CSS + chạy JS vào trang đích)</option>
+                    </select>
+                </div>
+                <button class="btn-bot-github" style="width:100%; padding:10px; font-size:0.9rem; background: linear-gradient(135deg, #10b981, #06b6d4) !important;" onclick="runBossBotScriptDeploy()">⚡ KÍCH HOẠT BOSS BOT TẠO LINK SCRIPT</button>
+            </div>
+
+            <div id="bot-sec-edit-script" style="display:none;">
+                <button style="width:100%; margin-bottom:12px; background:#0288d1; color:white; padding:8px;" onclick="fetchUserRepos('edit-script')">🔄 Lấy Danh Sách Kho Lưu Trữ Của Bạn</button>
+                <div class="setting-item">
+                    <label for="github-edit-script-repo-list">Chọn Kho Lưu Trữ Chứa Script Cần Sửa:</label>
+                    <select id="github-edit-script-repo-list" onchange="onScriptRepoListChange()">
+                        <option value="">-- Vui lòng nhấn "Lấy Danh Sách Kho" --</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <label for="github-edit-script-filename">Tên File Script Cần Sửa / Ghi Đè (.js):</label>
+                    <input type="text" id="github-edit-script-filename" value="script.js" placeholder="script.js hoặc app.js, widget.js..." oninput="onScriptRepoListChange()" />
+                </div>
+                <div class="setting-item">
+                    <label for="github-edit-script-source">Nội dung Script mới muốn ghi đè vào file:</label>
+                    <select id="github-edit-script-source">
+                        <option value="p1_js">⚡ JS Trang 1 (Mã JavaScript đang viết)</option>
+                        <option value="p2_js">⚡ JS Trang 2 (Nếu đang dùng Trang 2)</option>
+                        <option value="p1_bundle">📦 Gói Tự Chạy (Tự nhúng CSS + chạy JS vào trang đích)</option>
+                    </select>
+                </div>
+                <button class="btn-bot-github" style="width:100%; padding:10px; font-size:0.9rem; background: linear-gradient(135deg, #ec4899, #8b5cf6) !important;" onclick="updateSelectedScriptRepo()">🔄 SỬA / CẬP NHẬT FILE SCRIPT NÀY</button>
+            </div>
+
             <div id="bot-logs" class="bot-status-box">🤖 Boss Bot sẵn sàng nhận lệnh...</div>
 
-            <div id="bot-link-box" style="display:none; margin-top:10px; background:#1a1a1e; border:1px solid #00d2ff; border-radius:6px; padding:8px; align-items:center; gap:6px;">
-                <span style="font-size:0.75rem; color:#888; flex-shrink:0;">🌐 Link:</span>
+            <div id="bot-link-box" style="display:none; margin-top:10px; background:#1a1a1e; border:1px solid #00d2ff; border-radius:6px; padding:8px; align-items:center; gap:6px; box-sizing:border-box; width:100%; max-width:100%;">
+                <span style="font-size:0.75rem; color:#888; flex-shrink:0;">🌐 Link Web:</span>
                 <input id="bot-link-input" type="text" readonly style="flex:1; min-width:0; background:transparent; border:none; color:#00d2ff; font-size:0.75rem; outline:none;" onclick="this.select();" />
                 <button type="button" style="flex-shrink:0; padding:6px 10px; background:linear-gradient(135deg, #6e40c9, #00d2ff); border:none; color:white; border-radius:4px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="copyBotSiteLink()">📋 Copy</button>
+            </div>
+
+            <div id="bot-script-link-box" style="display:none; margin-top:10px; background:#121824; border:1px solid #10b981; border-radius:6px; padding:10px; flex-direction:column; gap:8px; box-sizing:border-box; width:100%; max-width:100%;">
+                <div style="font-size:0.8rem; font-weight:bold; color:#10b981; display:flex; align-items:center; gap:6px;">
+                    <span>🎉 Link Script CDN Đã Hoạt Động!</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-size:0.72rem; color:#94a3b8;">🔗 Link Script Trực Tiếp (jsDelivr CDN siêu tốc):</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input id="bot-script-cdn-input" type="text" readonly style="flex:1; min-width:0; background:#1e293b; border:1px solid #334155; color:#38bdf8; font-size:0.75rem; padding:6px 8px; border-radius:4px; outline:none;" onclick="this.select();" />
+                        <button type="button" style="flex-shrink:0; padding:6px 10px; background:linear-gradient(135deg, #10b981, #06b6d4); border:none; color:white; border-radius:4px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="copyBotScriptUrl('cdn')">📋 Copy Link</button>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-size:0.72rem; color:#94a3b8;">📜 Mã Nhúng HTML &lt;script&gt; (Dán vào bất kỳ web nào):</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input id="bot-script-tag-input" type="text" readonly style="flex:1; min-width:0; background:#1e293b; border:1px solid #334155; color:#a78bfa; font-size:0.75rem; padding:6px 8px; border-radius:4px; outline:none;" onclick="this.select();" />
+                        <button type="button" style="flex-shrink:0; padding:6px 10px; background:linear-gradient(135deg, #8b5cf6, #d946ef); border:none; color:white; border-radius:4px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="copyBotScriptUrl('tag')">📋 Copy Thẻ</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:2px; font-size:0.72rem;">
+                    <a id="bot-script-test-link" href="#" target="_blank" style="color:#00d2ff; text-decoration:underline;">↗ Mở thử file Script</a>
+                    <a id="bot-script-repo-link" href="#" target="_blank" style="color:#94a3b8; text-decoration:underline;">📁 Xem kho GitHub</a>
+                </div>
             </div>
         </div>
     </div>
@@ -2065,24 +2134,20 @@
 
         const editors = {};
         const models = {
-            p1: { html: null, css: null, js: null, py: null, cpp: null },
-            p2: { html: null, css: null, js: null, py: null, cpp: null }
+            p1: { html: null, css: null, js: null },
+            p2: { html: null, css: null, js: null }
         };
 
         const defaultTemplates = {
             p1: {
-                html: `<div class="card">\n    <h1>Giao diện Trang 1 ✨</h1>\n    <p>Trình soạn thảo VS Code với bộ HTML/CSS/JS/Python Trang 1 độc lập!</p>\n    <a href="https://google.com">Link Thử Nhiệm</a>\n</div>`,
+                html: `<div class="card">\n    <h1>Giao diện Trang 1 ✨</h1>\n    <p>Trình soạn thảo VS Code với bộ HTML/CSS/JS Trang 1 độc lập!</p>\n    <a href="https://google.com">Link Thử Nhiệm</a>\n</div>`,
                 css: `body { background: #111; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }\n.card { background: #222; padding: 25px; border-radius: 8px; text-align: center; border: 1px solid #00b0ff; box-shadow: 0 4px 15px rgba(0,176,255,0.2); width: 90%; max-width: 400px; margin: 20px; }`,
-                js: `console.log("⚡ [Trang 1] JavaScript đã sẵn sàng hoạt động!");`,
-                py: `# Python Trang 1 Full-Auto\nimport numpy as np\nimport matplotlib.pyplot as plt\n\nprint("🐍 [Trang 1] Đang thực thi Python...")\nx = np.linspace(0, 10, 100)\ny = np.sin(x)\n\nplt.figure(figsize=(6, 3))\nplt.plot(x, y, color='#00b0ff', linewidth=2, label='sin(x)')\nplt.title('Trang 1: Đồ thị Hàm Sine')\nplt.grid(True, linestyle='--', alpha=0.5)\nplt.legend()\nplt.show()`,
-                cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "⚙️ [Trang 1] C++ đã sẵn sàng hoạt động!" << endl;\n    for (int i = 1; i <= 5; i++) {\n        cout << "Trang 1 - Dong: " << i << endl;\n    }\n    return 0;\n}`
+                js: `console.log("⚡ [Trang 1] JavaScript đã sẵn sàng hoạt động!");`
             },
             p2: {
-                html: `<div class="card">\n    <h1>🚀 Giao diện Trang Web 2</h1>\n    <p>Bộ HTML/CSS/JS/Python riêng biệt 100% của Trang 2!</p>\n    <button onclick="thongBaoTrang2()">Bấm thử JS Trang 2</button>\n</div>`,
+                html: `<div class="card">\n    <h1>🚀 Giao diện Trang Web 2</h1>\n    <p>Bộ HTML/CSS/JS riêng biệt 100% của Trang 2!</p>\n    <button onclick="thongBaoTrang2()">Bấm thử JS Trang 2</button>\n</div>`,
                 css: `body { background: #1a002c; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; font-family: sans-serif; }\n.card { background: #2a0845; padding: 25px; border-radius: 8px; text-align: center; border: 1px solid #e040fb; box-shadow: 0 4px 15px rgba(224,64,251,0.4); width: 90%; max-width: 400px; margin: 20px; }\nbutton { background: #e040fb; color: white; border: none; padding: 10px 18px; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 10px; font-size: 0.9rem; }\nbutton:hover { background: #ab47bc; }`,
-                js: `function thongBaoTrang2() {\n    alert("🎉 Bạn vừa kích hoạt JavaScript độc lập của TRANG WEB 2!");\n}\nconsole.log("🚀 [Trang 2] JavaScript đã sẵn sàng hoạt động!");`,
-                py: `# Python Trang 2 Full-Auto\nimport numpy as np\nimport matplotlib.pyplot as plt\n\nprint("🐍 [Trang 2] Đang thực thi Python...")\nx = np.linspace(0, 10, 100)\ny = np.cos(x)\n\nplt.figure(figsize=(6, 3))\nplt.plot(x, y, color='#e040fb', linewidth=2, label='cos(x)')\nplt.title('Trang 2: Đồ thị Hàm Cosine')\nplt.grid(True, linestyle='--', alpha=0.5)\nplt.legend()\nplt.show()`,
-                cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "⚙️ [Trang 2] C++ đã sẵn sàng hoạt động!" << endl;\n    for (int i = 1; i <= 5; i++) {\n        cout << "Trang 2 - Dong: " << i << endl;\n    }\n    return 0;\n}`
+                js: `function thongBaoTrang2() {\n    alert("🎉 Bạn vừa kích hoạt JavaScript độc lập của TRANG WEB 2!");\n}\nconsole.log("🚀 [Trang 2] JavaScript đã sẵn sàng hoạt động!");`
             }
         };
 
@@ -2165,8 +2230,27 @@
             if (e.key !== 'Escape') return;
             const cModal = document.getElementById('app-confirm-modal');
             const pModal = document.getElementById('app-prompt-modal');
-            if (cModal && cModal.classList.contains('active')) { e.preventDefault(); resolveAppConfirm(false); }
-            else if (pModal && pModal.classList.contains('active')) { e.preventDefault(); resolveAppPrompt(false); }
+            if (cModal && cModal.classList.contains('active')) { e.preventDefault(); resolveAppConfirm(false); return; }
+            if (pModal && pModal.classList.contains('active')) { e.preventDefault(); resolveAppPrompt(false); return; }
+
+            // Đóng nhanh các modal / menu đang mở khi nhấn Escape
+            if (document.getElementById('web-url-modal')?.classList.contains('active')) { toggleWebUrlModal(false); return; }
+            if (document.getElementById('ai-web-menu-modal')?.classList.contains('active')) { closeAIWebMenu(); return; }
+            if (document.getElementById('save-modal')?.classList.contains('active')) { toggleSaveModal(false); return; }
+            if (document.getElementById('settings-modal')?.classList.contains('active')) { toggleSettingsModal(false); return; }
+            if (document.getElementById('bot-modal')?.classList.contains('active')) { toggleBotModal(false); return; }
+            if (document.getElementById('cdn-modal')?.classList.contains('active')) { toggleCDNModal(false); return; }
+            if (document.getElementById('create-app-modal')?.classList.contains('active')) { toggleCreateAppModal(false); return; }
+            if (document.getElementById('ai-key-modal')?.classList.contains('active')) { closeAIKeyModal(); return; }
+            if (document.getElementById('cf-saved-modal')?.classList.contains('active')) { closeSavedCustomFeaturesMenu(); return; }
+            if (document.getElementById('cf-center-modal')?.classList.contains('active')) { closeCustomFeatureRunner(); return; }
+            if (document.getElementById('combo-manage-modal')?.classList.contains('active')) { closeComboManage(); return; }
+            if (document.getElementById('combo-edit-modal')?.classList.contains('active')) { closeComboEditor(); return; }
+            if (document.getElementById('combo-menu-modal')?.classList.contains('active')) { closeComboMenu(); return; }
+            const searchBar = document.getElementById('search-bar');
+            if (searchBar && searchBar.style.display === 'flex') { toggleSearchBar(); return; }
+            closeDownloadMenu();
+            closeCopyCodeMenu();
         });
 
         /* ==================================================================== */
@@ -2174,7 +2258,7 @@
         /* ==================================================================== */
         const SAVE_SLOT_MAX = 5;
         const SAVE_STORAGE_KEY = 'codespace_saved_projects';
-        const SAVE_CODE_TYPES = ['html', 'css', 'js', 'py', 'cpp'];
+        const SAVE_CODE_TYPES = ['html', 'css', 'js'];
         let savedProjects = loadSavedProjects();
 
         function loadSavedProjects() {
@@ -2396,7 +2480,7 @@
             const item = savedProjects.find(s => s.id === id);
             if (!item || !item.data) return;
             try {
-                const page = (item.data.p1 && item.data.p1.html) ? 'p1' : 'p2';
+                const page = item.page || ((item.data.p1 && item.data.p1.html) ? 'p1' : (item.web2 ? 'p2' : 'p1'));
                 const d = item.data[page] || {};
                 const html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${escapeHtml(item.name || 'Ban luu')}</title>\n<style>\n${d.css || ''}\n</style>\n</head>\n<body>\n${d.html || ''}\n<script>\n${String(d.js || '').replace(/<\/script/gi, '<\\/script')}\n<\/script>\n</body>\n</html>`;
                 const safeFile = (item.name || 'ban-luu').replace(/[^a-zA-Z0-9\-_ ]/g, '').trim().replace(/\s+/g, '-') || 'ban-luu';
@@ -2449,8 +2533,6 @@
             { id: 'tab-html',   cat: 'Soạn thảo code', icon: '🟧', label: 'Mở tab HTML',   run: () => showEditor('html') },
             { id: 'tab-css',    cat: 'Soạn thảo code', icon: '🟦', label: 'Mở tab CSS',    run: () => showEditor('css') },
             { id: 'tab-js',     cat: 'Soạn thảo code', icon: '🟨', label: 'Mở tab JS',     run: () => showEditor('js') },
-            { id: 'tab-py',     cat: 'Soạn thảo code', icon: '🐍', label: 'Mở tab Python', run: () => showEditor('py') },
-            { id: 'tab-cpp',    cat: 'Soạn thảo code', icon: '⚙️', label: 'Mở tab C++',    run: () => showEditor('cpp') },
             { id: 'search',     cat: 'Soạn thảo code', icon: '🔍', label: 'Tìm & Thay thế',         run: () => toggleSearchBar() },
             { id: 'format',     cat: 'Soạn thảo code', icon: '✨', label: 'Format làm đẹp code',    run: () => formatCurrentEditor() },
             { id: 'lines',      cat: 'Soạn thảo code', icon: '🔢', label: 'Bật/tắt số dòng',        run: () => toggleLineNumbers() },
@@ -2519,8 +2601,6 @@
             'tab-html': ['#tab-html'],
             'tab-css': ['#tab-css'],
             'tab-js': ['#tab-js'],
-            'tab-py': ['#tab-py'],
-            'tab-cpp': ['#tab-cpp'],
             'search': ['#btn-search-toggle'],
             'format': ['#btn-format-code'],
             'lines': ['#btn-lines-pc'],
@@ -3327,17 +3407,12 @@
 
         function previewCustomFeaturePayloadInSavedMenu() {
             const payload = buildCustomFeaturePayload(null, {});
-            const el = document.getElementById('cf-saved-server-payload');
+            const el = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (el) el.value = JSON.stringify(payload, null, 2);
-            const other = document.getElementById('cf-server-payload');
-            if (other) other.value = JSON.stringify(payload, null, 2);
             cfServerLog('Đã tạo payload ' + payload.count + ' tính năng.');
         }
 
         async function sendSavedMenuPayload() {
-            const src = document.getElementById('cf-saved-server-payload');
-            const dst = document.getElementById('cf-server-payload');
-            if (src && dst) dst.value = src.value;
             try {
                 await sendCustomFeaturesToServer({ useEdited: true });
             } catch (e) {
@@ -3788,9 +3863,13 @@
             const featureExtra = (list.length === 1) ? parseCfJsonObject(list[0].apiExtra, {}) : {};
             const extra = Object.assign({}, featureExtra, (options.extra && typeof options.extra === 'object') ? options.extra : {});
             let payload;
-            const edited = document.getElementById('cf-server-payload');
+            const edited = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (options.useEdited && edited && edited.value.trim()) {
-                payload = JSON.parse(edited.value);
+                try {
+                    payload = JSON.parse(edited.value);
+                } catch (e) {
+                    throw new Error('Dữ liệu JSON trong ô tải lên không hợp lệ: ' + (e.message || e));
+                }
             } else {
                 payload = buildCustomFeaturePayload(ids, extra);
                 if (edited && !options.silent) edited.value = JSON.stringify(payload, null, 2);
@@ -3922,7 +4001,7 @@
         function copyCustomFeatureExport() {
             const payload = buildCustomFeaturePayload(null, {});
             const text = JSON.stringify(payload, null, 2);
-            const box = document.getElementById('cf-server-payload');
+            const box = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (box) box.value = text;
             const done = function () {
                 cfServerLog('Đã sao chép JSON ' + payload.count + ' tính năng.');
@@ -3938,7 +4017,7 @@
         function downloadCustomFeatureExport() {
             const payload = buildCustomFeaturePayload(null, {});
             const text = JSON.stringify(payload, null, 2);
-            const box = document.getElementById('cf-server-payload');
+            const box = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (box) box.value = text;
             downloadBlob(text, 'codespace-tinh-nang-pro-max.json', 'application/json');
             cfServerLog('Đã tải file JSON ' + payload.count + ' tính năng.');
@@ -4909,6 +4988,7 @@ Yêu cầu bắt buộc:
             if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
             const input = document.getElementById('ai-web-url');
             if (input) input.value = url;
+            aiWebRememberLastUrl(url);
             aiWebDockWindow();
             closeAIWebMenu();
         }
@@ -4916,6 +4996,9 @@ Yêu cầu bắt buộc:
         function openAIWebInTab() {
             const url = getAIWebMenuUrl();
             if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
+            const input = document.getElementById('ai-web-url');
+            if (input) input.value = url;
+            aiWebRememberLastUrl(url);
             window.open(url, '_blank');
             closeAIWebMenu();
             showAutoPasteToast('↗ Đã mở "' + url + '" trong tab mới');
@@ -5439,21 +5522,19 @@ Yêu cầu bắt buộc:
             const htmlCode = getCode(activeEditPage, 'html');
             const cssCode = getCode(activeEditPage, 'css');
             const jsCode = getCode(activeEditPage, 'js');
-            const pyCode = getCode(activeEditPage, 'py');
-            const cppCode = getCode(activeEditPage, 'cpp');
 
-            return `Bạn là trợ lý lập trình thông minh, có khả năng đọc và hiểu TOÀN BỘ dự án của người dùng gồm 5 phần: HTML, CSS, JS, Python và C++ (trang hiện tại: ${activeEditPage.toUpperCase()}). Tab người dùng đang mở là: ${currentTab.toUpperCase()}.\n${buildAIAssistantModeInstructions()}\n--- HTML ---\n\`\`\`html\n${htmlCode}\n\`\`\`\n\n--- CSS ---\n\`\`\`css\n${cssCode}\n\`\`\`\n\n--- JS ---\n\`\`\`javascript\n${jsCode}\n\`\`\`\n\n--- PYTHON ---\n\`\`\`python\n${pyCode}\n\`\`\`\n\n--- C++ ---\n\`\`\`cpp\n${cppCode}\n\`\`\`\n\nYêu cầu người dùng: ${text}\n\nHãy phản hồi theo đúng các CHẾ ĐỘ AI đang bật và dựa trên hiểu biết về TOÀN BỘ 5 phần code ở trên. Nếu cung cấp code mới cho một phần cụ thể, hãy đặt trong khối mã markdown đúng loại ngôn ngữ đó (html, css, javascript, python, cpp) để hệ thống tự nhận diện và chèn đúng vào tab tương ứng.${isAIAutoInsertEnabled ? '\nCHẾ ĐỘ TỰ ĐỘNG NHẬP CODE ĐANG BẬT: mọi khối code bạn trả về trong markdown (html, css, javascript, python, cpp) sẽ TỰ ĐỘNG được nhập vào đúng tab tương ứng và XÓA code cũ. Hãy trả về code đầy đủ, hoàn chỉnh, chạy được ngay.' : ''}`;
+            return `Bạn là trợ lý lập trình thông minh, có khả năng đọc và hiểu TOÀN BỘ dự án của người dùng gồm 3 phần: HTML, CSS và JS (trang hiện tại: ${activeEditPage.toUpperCase()}). Tab người dùng đang mở là: ${currentTab.toUpperCase()}.\n${buildAIAssistantModeInstructions()}\n--- HTML ---\n\`\`\`html\n${htmlCode}\n\`\`\`\n\n--- CSS ---\n\`\`\`css\n${cssCode}\n\`\`\`\n\n--- JS ---\n\`\`\`javascript\n${jsCode}\n\`\`\`\n\nYêu cầu người dùng: ${text}\n\nHãy phản hồi theo đúng các CHẾ ĐỘ AI đang bật và dựa trên hiểu biết về TOÀN BỘ 3 phần code ở trên. Nếu cung cấp code mới cho một phần cụ thể, hãy đặt trong khối mã markdown đúng loại ngôn ngữ đó (html, css, javascript) để hệ thống tự nhận diện và chèn đúng vào tab tương ứng.${isAIAutoInsertEnabled ? '\nCHẾ ĐỘ TỰ ĐỘNG NHẬP CODE ĐANG BẬT: mọi khối code bạn trả về trong markdown (html, css, javascript) sẽ TỰ ĐỘNG được nhập vào đúng tab tương ứng và XÓA code cũ. Hãy trả về code đầy đủ, hoàn chỉnh, chạy được ngay.' : ''}`;
         }
 
         let codeBlockIdCounter = 0;
-        const CODE_LANG_LABEL = { html: 'HTML', css: 'CSS', js: 'JAVASCRIPT', py: 'PYTHON', cpp: 'C++' };
-        const CODE_LANG_CLASS = { html: 'lang-html', css: 'lang-css', js: 'lang-js', py: 'lang-py', cpp: 'lang-cpp' };
-        const CODE_LANG_EXT = { html: 'html', css: 'css', js: 'js', py: 'py', cpp: 'cpp' };
-        const CODE_LANG_MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript', py: 'text/x-python', cpp: 'text/x-c++src' };
+        const CODE_LANG_LABEL = { html: 'HTML', css: 'CSS', js: 'JAVASCRIPT' };
+        const CODE_LANG_CLASS = { html: 'lang-html', css: 'lang-css', js: 'lang-js' };
+        const CODE_LANG_EXT = { html: 'html', css: 'css', js: 'js' };
+        const CODE_LANG_MIME = { html: 'text/html', css: 'text/css', js: 'text/javascript' };
 
         function renderAIResponseIntoBotMsg(botMsg, responseText) {
             let formatted = escapeHtml(responseText);
-            const langMap = { html: 'html', htm: 'html', css: 'css', js: 'js', javascript: 'js', py: 'py', python: 'py', cpp: 'cpp', 'c++': 'cpp', cc: 'cpp', cxx: 'cpp' };
+            const langMap = { html: 'html', htm: 'html', css: 'css', js: 'js', javascript: 'js' };
             const autoBlocks = [];
             formatted = formatted.replace(/```([a-z]*)\n([\s\S]*?)```/gi, function(match, lang, code) {
                 const rawCode = unescapeHtml(code);
@@ -6544,10 +6625,8 @@ Yêu cầu bắt buộc:
                 editors.html.setModel(models[page].html);
                 editors.css.setModel(models[page].css);
                 editors.js.setModel(models[page].js);
-                editors.py.setModel(models[page].py);
-                editors.cpp.setModel(models[page].cpp);
 
-                ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+                ['html', 'css', 'js'].forEach(t => {
                     updateHttpsHighlighting(editors[t]);
                 });
             }
@@ -6714,8 +6793,6 @@ Yêu cầu bắt buộc:
             const h = getCode(target, 'html');
             const c = getCode(target, 'css');
             const j = getCode(target, 'js');
-            const py = getCode(target, 'py');
-            const cpp = getCode(target, 'cpp');
 
             const activeKey = aiApiKeys.find(k => k.id === activeAIKeyId);
             if (!activeKey || !activeKey.key) {
@@ -6725,15 +6802,13 @@ Yêu cầu bắt buộc:
                 return;
             }
 
-            setAIResultBanner('🤖 AI đang chuyển đổi Python/C++ sang HTML/JS...', false);
-            document.getElementById('viewer').srcdoc = '<body style="margin:0;background:#111;color:#8ecff5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;"><div>🤖 AI đang chuyển đổi code, vui lòng đợi...</div></body>';
+            setAIResultBanner('🤖 AI đang dựng và tối ưu HTML/JS...', false);
+            document.getElementById('viewer').srcdoc = '<body style="margin:0;background:#111;color:#8ecff5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;"><div>🤖 AI đang xử lý code, vui lòng đợi...</div></body>';
 
-            const promptText = `Bạn là một công cụ CHUYỂN ĐỔI CODE cho trình soạn code.
-Dưới đây là code gồm: HTML, CSS, JavaScript, Python, C++.
+            const promptText = `Bạn là một công cụ CHUYỂN ĐỔI VÀ TỐI ƯU CODE cho trình soạn code.
+Dưới đây là code gồm: HTML, CSS, JavaScript.
 Nhiệm vụ của bạn: trả về DUY NHẤT một tài liệu HTML hoàn chỉnh (bắt đầu bằng <!DOCTYPE html>, kết thúc bằng </html>), KHÔNG kèm markdown, KHÔNG kèm giải thích.
-1. Nhúng nguyên văn HTML + CSS (trong thẻ <style>) + JavaScript (trong thẻ <script>).
-2. Nếu PYTHON có code: CHUYỂN ĐỔI sang JavaScript và in kết quả ra khung giao diện tối.
-3. Nếu C++ có code: CHUYỂN ĐỔI sang JavaScript và in kết quả ra khung giao diện tối.
+Nhúng nguyên văn HTML + CSS (trong thẻ <style>) + JavaScript (trong thẻ <script>).
 
 === HTML ===
 ${h}
@@ -6742,13 +6817,7 @@ ${h}
 ${c}
 
 === JAVASCRIPT ===
-${j}
-
-=== PYTHON ===
-${py}
-
-=== C++ ===
-${cpp}`;
+${j}`;
 
             const dummyStatusNode = document.createElement('div');
             dummyStatusNode.style.display = 'none';
@@ -6885,7 +6954,7 @@ ${cpp}`;
         function resetWorkspace() {
             if(confirm("Xóa toàn bộ code hiện tại để quay về mẫu ban đầu?")) {
                 ['p1', 'p2'].forEach(p => {
-                    ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+                    ['html', 'css', 'js'].forEach(t => {
                         setCode(p, t, defaultTemplates[p][t]);
                     });
                 });
@@ -6937,10 +7006,6 @@ ${cpp}`;
             downloadBlob(getCode('p1', 'css'), "style.css", "text/css");
             await new Promise(r => setTimeout(r, 150));
             downloadBlob(getCode('p1', 'js'), "script.js", "text/javascript");
-            await new Promise(r => setTimeout(r, 150));
-            downloadBlob(getCode('p1', 'py'), "main.py", "text/x-python");
-            await new Promise(r => setTimeout(r, 150));
-            downloadBlob(getCode('p1', 'cpp'), "main.cpp", "text/x-c++src");
 
             if (isWeb2Enabled) {
                 await new Promise(r => setTimeout(r, 150));
@@ -6949,10 +7014,6 @@ ${cpp}`;
                 downloadBlob(getCode('p2', 'css'), "page2_style.css", "text/css");
                 await new Promise(r => setTimeout(r, 150));
                 downloadBlob(getCode('p2', 'js'), "page2_script.js", "text/javascript");
-                await new Promise(r => setTimeout(r, 150));
-                downloadBlob(getCode('p2', 'py'), "page2_main.py", "text/x-python");
-                await new Promise(r => setTimeout(r, 150));
-                downloadBlob(getCode('p2', 'cpp'), "page2_main.cpp", "text/x-c++src");
             }
             closeDownloadMenu();
         }
@@ -6963,19 +7024,17 @@ ${cpp}`;
             folderP1.file("index.html", getCode('p1', 'html'));
             folderP1.file("style.css", getCode('p1', 'css'));
             folderP1.file("script.js", getCode('p1', 'js'));
-            folderP1.file("main.py", getCode('p1', 'py'));
-            folderP1.file("main.cpp", getCode('p1', 'cpp'));
 
             if (isWeb2Enabled) {
                 const folderP2 = zip.folder("page2");
                 folderP2.file("page2.html", getCode('p2', 'html'));
                 folderP2.file("style.css", getCode('p2', 'css'));
                 folderP2.file("script.js", getCode('p2', 'js'));
-                folderP2.file("main.py", getCode('p2', 'py'));
-                folderP2.file("main.cpp", getCode('p2', 'cpp'));
             }
 
             zip.file("index.html", getCode('p1', 'html'));
+            zip.file("style.css", getCode('p1', 'css'));
+            zip.file("script.js", getCode('p1', 'js'));
 
             zip.generateAsync({ type: "blob" }).then(function (content) {
                 downloadBlob(content, "codespace_project.zip", "application/zip");
@@ -7135,9 +7194,19 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
 
                 let source = buildFullSource(page);
                 const pwaHead = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#00b0ff">\n${headExtras}<link rel="icon" href="./icons/icon-192.png">\n<title>${appName.replace(/"/g, '&quot;')}</title>`;
-                source = source.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + pwaHead);
+                if (/<meta[^>]*charset[^>]*>/i.test(source)) {
+                    source = source.replace(/(<meta[^>]*charset[^>]*>)/i, `$1\n${pwaHead}`);
+                } else if (/<head[^>]*>/i.test(source)) {
+                    source = source.replace(/(<head[^>]*>)/i, `$1\n<meta charset="UTF-8">\n${pwaHead}`);
+                } else {
+                    source = `<head>\n<meta charset="UTF-8">\n${pwaHead}\n</head>\n` + source;
+                }
                 const swRegisterScript = `<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW lỗi:', err)); }); }<\/script>`;
-                source = source.replace('</body>', swRegisterScript + '\n</body>');
+                if (/<\/body>/i.test(source)) {
+                    source = source.replace(/<\/body>/i, `${swRegisterScript}\n</body>`);
+                } else {
+                    source += `\n${swRegisterScript}\n`;
+                }
 
                 zip.file('index.html', source);
 
@@ -7172,9 +7241,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             const parts = [
                 '========== HTML ==========\n' + getCode(p, 'html'),
                 '========== CSS ==========\n' + getCode(p, 'css'),
-                '========== JAVASCRIPT ==========\n' + getCode(p, 'js'),
-                '========== PYTHON ==========\n' + getCode(p, 'py'),
-                '========== C++ ==========\n' + getCode(p, 'cpp')
+                '========== JAVASCRIPT ==========\n' + getCode(p, 'js')
             ];
             return parts.join('\n\n');
         }
@@ -7225,7 +7292,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
         function toggleToolbar(show) { const toolbar = document.getElementById('main-toolbar'); const reopenBtn = document.getElementById('reopen-btn'); if (show) { toolbar.classList.remove('collapsed'); reopenBtn.style.display = 'none'; } else { toolbar.classList.add('collapsed'); reopenBtn.style.display = 'block'; } setTimeout(() => { if(editors[currentTab]) editors[currentTab].layout(); }, 200); }
         function toggleLineNumbers() {
             showLines = !showLines;
-            ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+            ['html', 'css', 'js'].forEach(t => {
                 if (editors[t]) editors[t].updateOptions({ lineNumbers: showLines ? 'on' : 'off' });
             });
         }
@@ -7246,8 +7313,9 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
         }
 
         function showEditor(type) {
+            if (!['html', 'css', 'js'].includes(type)) type = 'html';
             currentTab = type;
-            ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+            ['html', 'css', 'js'].forEach(t => {
                 const container = document.getElementById('container-' + t);
                 const tabBtn = document.getElementById('tab-' + t);
                 if (t === type) {
@@ -7284,6 +7352,33 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             }, 250));
         }
 
+        function saveAllCodeImmediately() {
+            clearTimeout(typingTimer);
+            try {
+                ['p1', 'p2'].forEach(p => {
+                    ['html', 'css', 'js'].forEach(t => {
+                        const val = getCode(p, t);
+                        if (val !== undefined && val !== null) {
+                            safeSetLocalStorage(`codespace_${p}_${t}`, val);
+                        }
+                    });
+                });
+                const indicator = document.getElementById('save-indicator');
+                if (indicator) indicator.textContent = "Đã lưu tự động";
+            } catch (e) {
+                console.warn('Lỗi lưu tự động khi rời trang:', e);
+            }
+        }
+
+        window.addEventListener('beforeunload', saveAllCodeImmediately);
+        window.addEventListener('pagehide', saveAllCodeImmediately);
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                saveAllCodeImmediately();
+            }
+        });
+        window.addEventListener('blur', saveAllCodeImmediately);
+
         function onCodeInput(page, type) {
             showSaveStatus();
             clearTimeout(typingTimer);
@@ -7306,13 +7401,26 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
 
         function changeFontSize(amount) {
             currentFontSize = Math.max(10, Math.min(25, currentFontSize + amount));
-            ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+            ['html', 'css', 'js'].forEach(t => {
                 if (editors[t]) editors[t].updateOptions({ fontSize: currentFontSize });
             });
         }
 
         function toggleSettingsModal(show) { const modal = document.getElementById('settings-modal'); if (show) { modal.classList.add('active'); const isBanner = ['top', 'bottom', 'popup'].includes(adsLocation); document.getElementById('ads-size-container').style.display = isBanner ? 'flex' : 'none'; } else { modal.classList.remove('active'); } }
-        function toggleBotModal(show) { const modal = document.getElementById('bot-modal'); if (show) { modal.classList.add('active'); const savedToken = localStorage.getItem('codespace_github_token'); if(savedToken) document.getElementById('github-token').value = savedToken; const linkBox = document.getElementById('bot-link-box'); if (linkBox) linkBox.style.display = 'none'; } else { modal.classList.remove('active'); } }
+        function toggleBotModal(show) {
+            const modal = document.getElementById('bot-modal');
+            if (show) {
+                modal.classList.add('active');
+                const savedToken = localStorage.getItem('codespace_github_token');
+                if (savedToken) document.getElementById('github-token').value = savedToken;
+                const linkBox = document.getElementById('bot-link-box');
+                if (linkBox) linkBox.style.display = 'none';
+                const scriptBox = document.getElementById('bot-script-link-box');
+                if (scriptBox) scriptBox.style.display = 'none';
+            } else {
+                modal.classList.remove('active');
+            }
+        }
         function onAdsLocationChange(select) {
             adsLocation = select.value;
             safeSetLocalStorage('codespace_ads_location', adsLocation);
@@ -7329,13 +7437,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             logs.scrollTop = logs.scrollHeight;
         }
 
-        function showBotSiteLink(url) {
-            const box = document.getElementById('bot-link-box');
-            const input = document.getElementById('bot-link-input');
-            if (!box || !input) return;
-            input.value = url;
-            box.style.display = 'flex';
-        }
+
 
         function onRepoListChange() {
             const select = document.getElementById('github-repo-list');
@@ -7367,28 +7469,97 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             }
         }
 
-        function switchBotMode(mode) {
-            const secCreate = document.getElementById('bot-sec-create');
-            const secEdit = document.getElementById('bot-sec-edit');
-            const btnCreate = document.getElementById('btn-bot-mode-create');
-            const btnEdit = document.getElementById('btn-bot-mode-edit');
+        function showBotSiteLink(url) {
+            const scriptBox = document.getElementById('bot-script-link-box');
+            if (scriptBox) scriptBox.style.display = 'none';
+            const box = document.getElementById('bot-link-box');
+            const input = document.getElementById('bot-link-input');
+            if (!box || !input) return;
+            input.value = url;
+            box.style.display = 'flex';
+        }
 
-            if (mode === 'create') {
-                secCreate.style.display = 'block';
-                secEdit.style.display = 'none';
-                btnCreate.classList.add('active');
-                btnEdit.classList.remove('active');
+        function showBotScriptLink(cdnUrl, scriptTag, rawUrl, repoUrl) {
+            const siteBox = document.getElementById('bot-link-box');
+            if (siteBox) siteBox.style.display = 'none';
+            const box = document.getElementById('bot-script-link-box');
+            const cdnInput = document.getElementById('bot-script-cdn-input');
+            const tagInput = document.getElementById('bot-script-tag-input');
+            const testLink = document.getElementById('bot-script-test-link');
+            const repoLink = document.getElementById('bot-script-repo-link');
+            if (!box) return;
+            if (cdnInput) cdnInput.value = cdnUrl;
+            if (tagInput) tagInput.value = scriptTag;
+            if (testLink) testLink.href = cdnUrl;
+            if (repoLink) repoLink.href = repoUrl;
+            box.style.display = 'flex';
+        }
+
+        function copyBotScriptUrl(type) {
+            const input = document.getElementById(type === 'tag' ? 'bot-script-tag-input' : 'bot-script-cdn-input');
+            if (!input || !input.value) return;
+            const text = input.value;
+            input.select();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopyToast(type === 'tag' ? '📋 Đã sao chép mã thẻ <script>!' : '📋 Đã sao chép Link Script CDN!');
+                }).catch(() => {
+                    fallbackSharePrompt(text);
+                });
             } else {
-                secCreate.style.display = 'none';
-                secEdit.style.display = 'block';
-                btnEdit.classList.add('active');
-                btnCreate.classList.remove('active');
-                const token = document.getElementById('github-token').value.trim();
-                if (token) fetchUserRepos();
+                fallbackSharePrompt(text);
             }
         }
 
-        async function fetchUserRepos() {
+        function onScriptRepoListChange() {
+            const select = document.getElementById('github-edit-script-repo-list');
+            const fnInput = document.getElementById('github-edit-script-filename');
+            if (!select) return;
+            const opt = select.options[select.selectedIndex];
+            const repoName = select.value;
+            const owner = opt ? opt.dataset.owner : '';
+            let filename = fnInput ? fnInput.value.trim() : 'script.js';
+            if (!filename) filename = 'script.js';
+            if (!filename.toLowerCase().endsWith('.js')) filename += '.js';
+            filename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+            if (!repoName || !owner) return;
+
+            const cdnUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repoName}@main/${filename}`;
+            const scriptTag = `<script src="${cdnUrl}"><\/script>`;
+            const rawUrl = `https://raw.githack.com/${owner}/${repoName}/main/${filename}`;
+            const repoUrl = `https://github.com/${owner}/${repoName}`;
+
+            showBotScriptLink(cdnUrl, scriptTag, rawUrl, repoUrl);
+        }
+
+        function switchBotMode(mode) {
+            const secCreate = document.getElementById('bot-sec-create');
+            const secEdit = document.getElementById('bot-sec-edit');
+            const secScript = document.getElementById('bot-sec-script');
+            const secEditScript = document.getElementById('bot-sec-edit-script');
+            const btnCreate = document.getElementById('btn-bot-mode-create');
+            const btnEdit = document.getElementById('btn-bot-mode-edit');
+            const btnScript = document.getElementById('btn-bot-mode-script');
+            const btnEditScript = document.getElementById('btn-bot-mode-edit-script');
+
+            if (btnCreate) btnCreate.classList.toggle('active', mode === 'create');
+            if (btnEdit) btnEdit.classList.toggle('active', mode === 'edit');
+            if (btnScript) btnScript.classList.toggle('active', mode === 'script');
+            if (btnEditScript) btnEditScript.classList.toggle('active', mode === 'edit-script');
+
+            if (secCreate) secCreate.style.display = mode === 'create' ? 'block' : 'none';
+            if (secEdit) secEdit.style.display = mode === 'edit' ? 'block' : 'none';
+            if (secScript) secScript.style.display = mode === 'script' ? 'block' : 'none';
+            if (secEditScript) secEditScript.style.display = mode === 'edit-script' ? 'block' : 'none';
+
+            if (mode === 'edit' || mode === 'edit-script') {
+                const token = document.getElementById('github-token').value.trim();
+                if (token) fetchUserRepos(mode);
+            }
+        }
+
+        async function fetchUserRepos(targetMode) {
             const token = document.getElementById('github-token').value.trim();
             if (!token) {
                 alert("Vui lòng nhập GitHub Personal Access Token trước!");
@@ -7404,24 +7575,36 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 if (!res.ok) throw new Error("Không thể lấy danh sách kho lưu trữ.");
                 const repos = await res.json();
 
-                const select = document.getElementById('github-repo-list');
-                select.innerHTML = '';
+                const selectWeb = document.getElementById('github-repo-list');
+                const selectScript = document.getElementById('github-edit-script-repo-list');
+
+                [selectWeb, selectScript].forEach(select => {
+                    if (!select) return;
+                    select.innerHTML = '';
+                    if (repos.length === 0) {
+                        select.innerHTML = '<option value="">Không tìm thấy kho lưu trữ nào</option>';
+                        return;
+                    }
+                    repos.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r.name;
+                        opt.dataset.owner = (r.owner && r.owner.login) ? r.owner.login : '';
+                        opt.textContent = `${r.name} ${r.private ? '🔒' : '🌐'}`;
+                        select.appendChild(opt);
+                    });
+                });
+
                 if (repos.length === 0) {
-                    select.innerHTML = '<option value="">Không tìm thấy kho lưu trữ nào</option>';
                     botLog("⚠️ Tài khoản chưa có kho lưu trữ nào.");
                     return;
                 }
 
-                repos.forEach(r => {
-                    const opt = document.createElement('option');
-                    opt.value = r.name;
-                    opt.dataset.owner = (r.owner && r.owner.login) ? r.owner.login : '';
-                    opt.textContent = `${r.name} ${r.private ? '🔒' : '🌐'}`;
-                    select.appendChild(opt);
-                });
-
                 botLog(`✅ Đã tìm thấy ${repos.length} kho lưu trữ.`);
-                onRepoListChange();
+                if (targetMode === 'edit-script') {
+                    onScriptRepoListChange();
+                } else {
+                    onRepoListChange();
+                }
             } catch(err) {
                 botLog(`❌ [LỖI]: ${err.message}`);
             }
@@ -7493,6 +7676,251 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 const siteUrl = `https://${username}.github.io/${selectedRepo}/`;
                 botLog(`🌐 Link trang web: ${siteUrl}`);
                 showBotSiteLink(siteUrl);
+            } catch (err) {
+                botLog(`❌ [LỖI]: ${err.message}`);
+            }
+        }
+
+        async function updateSelectedScriptRepo() {
+            const token = document.getElementById('github-token').value.trim();
+            const select = document.getElementById('github-edit-script-repo-list');
+            const selectedRepo = select ? select.value : '';
+            const fnInput = document.getElementById('github-edit-script-filename');
+            let filename = (fnInput && fnInput.value.trim()) || 'script.js';
+            const sourceChoice = document.getElementById('github-edit-script-source').value;
+
+            if (!filename.toLowerCase().endsWith('.js')) filename += '.js';
+            filename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+            if (!token || !selectedRepo) {
+                alert("Vui lòng nhập Token và chọn kho lưu trữ cần sửa script!");
+                return;
+            }
+
+            safeSetLocalStorage('codespace_github_token', token);
+            botLog(`🤖 Bắt đầu sửa và cập nhật file script "${filename}" trong kho "${selectedRepo}"...`);
+
+            const siteBox = document.getElementById('bot-link-box');
+            const scriptBox = document.getElementById('bot-script-link-box');
+            if (siteBox) siteBox.style.display = 'none';
+            if (scriptBox) scriptBox.style.display = 'none';
+
+            try {
+                botLog("Đang xác thực tài khoản GitHub...");
+                const userRes = await fetch('https://api.github.com/user', {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (!userRes.ok) throw new Error("Token không hợp lệ hoặc hết hạn!");
+                const userData = await userRes.json();
+                const username = userData.login;
+
+                let scriptCode = '';
+                if (sourceChoice === 'p2_js') {
+                    scriptCode = getCode('p2', 'js') || '// JavaScript Trang 2\n';
+                } else if (sourceChoice === 'p1_bundle') {
+                    const cssCode = getCode('p1', 'css') || '';
+                    const jsCode = getCode('p1', 'js') || '';
+                    const escapedCss = JSON.stringify(cssCode);
+                    scriptCode = `/* 📦 Bundle Script được cập nhật bởi Boss Bot CodeSpace */\n(function() {\n    'use strict';\n    const css = ${escapedCss};\n    if (css && css.trim()) {\n        const style = document.createElement('style');\n        style.setAttribute('data-injected-by', 'boss-bot-codespace');\n        style.textContent = css;\n        document.head ? document.head.appendChild(style) : document.documentElement.appendChild(style);\n    }\n    // Logic JavaScript\n    ${jsCode}\n})();`;
+                } else {
+                    scriptCode = getCode('p1', 'js') || '// JavaScript Trang 1\n';
+                }
+
+                botLog(`Chuẩn bị nội dung script "${filename}" (${scriptCode.length} ký tự)...`);
+
+                const utf8Bytes = new TextEncoder().encode(scriptCode);
+                let binaryStr = '';
+                utf8Bytes.forEach(b => binaryStr += String.fromCharCode(b));
+                const contentBase64 = btoa(binaryStr);
+
+                let fileSha = null;
+                const fileCheckRes = await fetch(`https://api.github.com/repos/${username}/${selectedRepo}/contents/${filename}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (fileCheckRes.ok) {
+                    const fileData = await fileCheckRes.json();
+                    fileSha = fileData.sha;
+                    botLog(`File "${filename}" đã có trên kho (SHA: ${fileSha.slice(0, 7)}), đang ghi đè...`);
+                } else {
+                    botLog(`File "${filename}" chưa có trên kho, sẽ tạo mới file này trong kho...`);
+                }
+
+                botLog(`Đang ghi đè file "${filename}" vào kho "${selectedRepo}"...`);
+                const pushRes = await fetch(`https://api.github.com/repos/${username}/${selectedRepo}/contents/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `🤖 Boss Bot sửa và cập nhật lại file script: ${filename}`,
+                        content: contentBase64,
+                        sha: fileSha || undefined
+                    })
+                });
+
+                if (!pushRes.ok) {
+                    const errData = await pushRes.json().catch(() => ({}));
+                    throw new Error(`Cập nhật file script thất bại: ${errData.message || pushRes.statusText}`);
+                }
+
+                botLog(`🎉 ĐÃ CẬP NHẬT FILE SCRIPT "${filename}" THÀNH CÔNG!`);
+
+                fetch(`https://api.github.com/repos/${username}/${selectedRepo}/pages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ source: { branch: 'main', path: '/' } })
+                }).catch(() => {});
+
+                const cdnUrl = `https://cdn.jsdelivr.net/gh/${username}/${selectedRepo}@main/${filename}`;
+                const scriptTag = `<script src="${cdnUrl}"><\/script>`;
+                const rawUrl = `https://raw.githack.com/${username}/${selectedRepo}/main/${filename}`;
+                const repoUrl = `https://github.com/${username}/${selectedRepo}`;
+
+                botLog(`🔗 Link CDN jsDelivr: ${cdnUrl}`);
+                botLog(`📜 Mã nhúng: ${scriptTag}`);
+
+                showBotScriptLink(cdnUrl, scriptTag, rawUrl, repoUrl);
+                showAutoPasteToast(`🔄 Đã sửa và cập nhật Script "${filename}"!`);
+            } catch (err) {
+                botLog(`❌ [LỖI]: ${err.message}`);
+            }
+        }
+
+        async function runBossBotScriptDeploy() {
+            const token = document.getElementById('github-token').value.trim();
+            let repo = document.getElementById('github-script-repo').value.trim() || 'my-scripts';
+            let filename = document.getElementById('github-script-filename').value.trim() || 'script.js';
+            const sourceChoice = document.getElementById('github-script-source').value;
+
+            repo = repo.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+            if (!filename.toLowerCase().endsWith('.js')) {
+                filename += '.js';
+            }
+            filename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+            if (!token) {
+                alert("Vui lòng nhập GitHub Personal Access Token!");
+                return;
+            }
+
+            safeSetLocalStorage('codespace_github_token', token);
+            const botLogs = document.getElementById('bot-logs');
+            if (botLogs) botLogs.textContent = "🤖 Boss Bot đang khởi tạo tạo Link Script...";
+
+            const siteBox = document.getElementById('bot-link-box');
+            const scriptBox = document.getElementById('bot-script-link-box');
+            if (siteBox) siteBox.style.display = 'none';
+            if (scriptBox) scriptBox.style.display = 'none';
+
+            try {
+                botLog("Đang xác thực tài khoản GitHub...");
+                const userRes = await fetch('https://api.github.com/user', {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (!userRes.ok) throw new Error("Token không hợp lệ hoặc hết hạn!");
+                const userData = await userRes.json();
+                const username = userData.login;
+                botLog(`Xin chào ${username}!`);
+
+                botLog(`Đang kiểm tra kho lưu trữ "${repo}"...`);
+                let repoRes = await fetch(`https://api.github.com/repos/${username}/${repo}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (repoRes.status === 404) {
+                    botLog(`Đang tạo kho lưu trữ mới "${repo}" để chứa script...`);
+                    const createRepoRes = await fetch('https://api.github.com/user/repos', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: repo,
+                            description: "Kho lưu trữ Script CDN tự động tạo bởi Boss Bot CodeSpace",
+                            auto_init: true
+                        })
+                    });
+                    if (!createRepoRes.ok) throw new Error("Không thể tạo kho lưu trữ mới!");
+                    botLog(`Tạo kho "${repo}" thành công!`);
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+
+                let scriptCode = '';
+                if (sourceChoice === 'p2_js') {
+                    scriptCode = getCode('p2', 'js') || '// JavaScript Trang 2\n';
+                } else if (sourceChoice === 'p1_bundle') {
+                    const cssCode = getCode('p1', 'css') || '';
+                    const jsCode = getCode('p1', 'js') || '';
+                    const escapedCss = JSON.stringify(cssCode);
+                    scriptCode = `/* 📦 Bundle Script được tạo tự động bởi Boss Bot CodeSpace */\n(function() {\n    'use strict';\n    const css = ${escapedCss};\n    if (css && css.trim()) {\n        const style = document.createElement('style');\n        style.setAttribute('data-injected-by', 'boss-bot-codespace');\n        style.textContent = css;\n        document.head ? document.head.appendChild(style) : document.documentElement.appendChild(style);\n    }\n    // Logic JavaScript\n    ${jsCode}\n})();`;
+                } else {
+                    scriptCode = getCode('p1', 'js') || '// JavaScript Trang 1\n';
+                }
+
+                botLog(`Chuẩn bị nội dung script "${filename}" (${scriptCode.length} ký tự)...`);
+
+                const utf8Bytes = new TextEncoder().encode(scriptCode);
+                let binaryStr = '';
+                utf8Bytes.forEach(b => binaryStr += String.fromCharCode(b));
+                const contentBase64 = btoa(binaryStr);
+
+                let fileSha = null;
+                const fileCheckRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (fileCheckRes.ok) {
+                    const fileData = await fileCheckRes.json();
+                    fileSha = fileData.sha;
+                    botLog(`File "${filename}" đã có trên kho, sẽ ghi đè phiên bản mới...`);
+                }
+
+                botLog(`Đang đẩy file "${filename}" lên GitHub...`);
+                const pushRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `🤖 Boss Bot cập nhật link script: ${filename}`,
+                        content: contentBase64,
+                        sha: fileSha || undefined
+                    })
+                });
+
+                if (!pushRes.ok) {
+                    const errData = await pushRes.json().catch(() => ({}));
+                    throw new Error(`Đẩy file script thất bại: ${errData.message || pushRes.statusText}`);
+                }
+
+                botLog(`🎉 ĐÃ TẢI SCRIPT LÊN THÀNH CÔNG!`);
+
+                fetch(`https://api.github.com/repos/${username}/${repo}/pages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ source: { branch: 'main', path: '/' } })
+                }).catch(() => {});
+
+                const cdnUrl = `https://cdn.jsdelivr.net/gh/${username}/${repo}@main/${filename}`;
+                const scriptTag = `<script src="${cdnUrl}"><\/script>`;
+                const rawUrl = `https://raw.githack.com/${username}/${repo}/main/${filename}`;
+                const repoUrl = `https://github.com/${username}/${repo}`;
+
+                botLog(`🔗 Link CDN jsDelivr: ${cdnUrl}`);
+                botLog(`📜 Mã nhúng: ${scriptTag}`);
+
+                showBotScriptLink(cdnUrl, scriptTag, rawUrl, repoUrl);
+                showAutoPasteToast('⚡ Đã tạo xong Link Script CDN!');
             } catch (err) {
                 botLog(`❌ [LỖI]: ${err.message}`);
             }
@@ -7605,16 +8033,12 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 const h1 = encodeStr(getCode('p1', 'html'));
                 const c1 = encodeStr(getCode('p1', 'css'));
                 const j1 = encodeStr(getCode('p1', 'js'));
-                const p1 = encodeStr(getCode('p1', 'py'));
-                const x1 = encodeStr(getCode('p1', 'cpp'));
 
                 const h2 = encodeStr(getCode('p2', 'html'));
                 const c2 = encodeStr(getCode('p2', 'css'));
                 const j2 = encodeStr(getCode('p2', 'js'));
-                const p2 = encodeStr(getCode('p2', 'py'));
-                const x2 = encodeStr(getCode('p2', 'cpp'));
 
-                const shareURL = `${window.location.origin}${window.location.pathname}?h1=${h1}&c1=${c1}&j1=${j1}&p1=${p1}&x1=${x1}&h2=${h2}&c2=${c2}&j2=${j2}&p2=${p2}&x2=${x2}&w2=${isWeb2Enabled}`;
+                const shareURL = `${window.location.origin}${window.location.pathname}?h1=${h1}&c1=${c1}&j1=${j1}&h2=${h2}&c2=${c2}&j2=${j2}&w2=${isWeb2Enabled}`;
                 if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(shareURL).then(() => { alert("🎉 ĐÃ COPY LINK CHIA SẺ TRỌN BỘ CẢ 2 TRANG WEB!"); }).catch(() => { fallbackSharePrompt(shareURL); }); } else { fallbackSharePrompt(shareURL); }
             } catch (err) { alert("Lỗi mã hóa: " + err.message); }
         }
@@ -7634,7 +8058,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
         function triggerFileInput() { document.getElementById('file-input').click(); }
         function triggerFolderInput() { document.getElementById('folder-input').click(); }
 
-        const EXT_MAP = { html: ['html', 'htm'], css: ['css', 'scss', 'sass', 'less'], js: ['js', 'jsx', 'ts', 'tsx', 'mjs', 'cjs'], py: ['py', 'pyw', 'ipynb'], cpp: ['cpp', 'cc', 'cxx', 'c', 'h', 'hpp'], vue: ['vue'], image: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico'], font: ['woff', 'woff2', 'ttf', 'otf'], mhtml: ['mht', 'mhtml'] };
+        const EXT_MAP = { html: ['html', 'htm'], css: ['css', 'scss', 'sass', 'less'], js: ['js', 'jsx', 'ts', 'tsx', 'mjs', 'cjs'], vue: ['vue'], image: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico'], font: ['woff', 'woff2', 'ttf', 'otf'], mhtml: ['mht', 'mhtml'] };
         const MIME_MAP = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', ico: 'image/x-icon', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf' };
         function getExt(name) { const m = name.toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ''; }
         function getFileCategory(name) { const ext = getExt(name); for (const cat in EXT_MAP) { if (EXT_MAP[cat].includes(ext)) return cat; } return 'text'; }
@@ -7665,7 +8089,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 setCode(target, 'html', bodyClone.innerHTML.trim());
                 if (fullOverwrite || cssContent.trim()) setCode(target, 'css', cssContent.trim());
                 if (fullOverwrite || jsContent.trim()) setCode(target, 'js', jsContent.trim());
-            } else if (category === 'css') { setCode(target, 'css', text); } else if (category === 'js') { setCode(target, 'js', text); } else if (category === 'py') { setCode(target, 'py', text); showEditor('py'); } else if (category === 'cpp') { setCode(target, 'cpp', text); showEditor('cpp'); } else { setCode(target, currentTab, text); }
+            } else if (category === 'css') { setCode(target, 'css', text); } else if (category === 'js') { setCode(target, 'js', text); } else { setCode(target, currentTab, text); }
         }
 
         function importVueFileContent(text, fullOverwrite) { const templateMatch = text.match(/<template[^>]*>([\s\S]*?)<\/template>/i); const scriptMatch = text.match(/<script[^>]*>([\s\S]*?)<\/script>/i); const styleMatch = text.match(/<style[^>]*>([\s\S]*?)<\/style>/i); const applySection = (id, match) => { if (match) setCode(activeEditPage, id, match[1].trim()); else if (fullOverwrite) setCode(activeEditPage, id, ''); }; applySection('html', templateMatch); applySection('js', scriptMatch); applySection('css', styleMatch); }
@@ -7674,7 +8098,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
 
         function finalizeImport() {
             ['p1', 'p2'].forEach(p => {
-                ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+                ['html', 'css', 'js'].forEach(t => {
                     safeSetLocalStorage(`codespace_${p}_${t}`, getCode(p, t));
                 });
             });
@@ -7694,8 +8118,6 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                     if (category === 'html') { const text = await zipEntry.async('string'); setCode(target, 'html', text); foundAny = true; }
                     else if (category === 'css') { const text = await zipEntry.async('string'); setCode(target, 'css', text); foundAny = true; }
                     else if (category === 'js') { const text = await zipEntry.async('string'); setCode(target, 'js', text); foundAny = true; }
-                    else if (category === 'py') { const text = await zipEntry.async('string'); setCode(target, 'py', text); foundAny = true; }
-                    else if (category === 'cpp') { const text = await zipEntry.async('string'); setCode(target, 'cpp', text); foundAny = true; }
                     else if (category === 'vue') { const text = await zipEntry.async('string'); importVueFileContent(text, false); foundAny = true; }
                     else if (category === 'mhtml') { const text = await zipEntry.async('string'); importMhtmlContent(text, relPath, false); foundAny = true; }
                     else if (category === 'image') { const base64 = await zipEntry.async('base64'); insertImageIntoHtml(relPath, `data:${MIME_MAP[getExt(relPath)] || 'image/png'};base64,${base64}`); foundAny = true; }
@@ -7709,8 +8131,6 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             const h = getCode(target, 'html') || '';
             const c = getCode(target, 'css') || '';
             const j = getCode(target, 'js') || '';
-            const py = getCode(target, 'py') || '';
-            const cpp = getCode(target, 'cpp') || '';
 
             let adsStyle = ` .fake-ad { background:#fff3cd; color:#856404; border:1px solid #ffeeba; padding:12px; margin:10px auto; border-radius:6px; text-align:center; font-family:sans-serif; position:relative; z-index:99999; display:flex; flex-direction:column; justify-content:center; align-items:center; } .fake-ad-tag { position:absolute; top:2px; left:5px; font-size:9px; background:#ccc; color:#fff; padding:1px 3px; border-radius:2px; } .fake-ad-title { font-size:13px; display:block; margin-bottom:4px; font-weight:bold; } .fake-ad-close { position:absolute; top:4px; right:6px; background:none; border:none; font-weight:bold; cursor:pointer; } .video-ad-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); color:white; z-index:99999999; display:flex; flex-direction:column; justify-content:center; align-items:center; font-family:sans-serif; padding:20px; text-align:center; } .video-box { width:100%; max-width:320px; height:180px; background:#000; display:flex; flex-direction:column; gap:12px; justify-content:center; align-items:center; border:2px solid #00b0ff; margin-bottom:15px; border-radius:6px; color:#00b0ff; font-weight:bold; } .video-progress { width:82%; height:7px; background:#1b1b20; border-radius:4px; overflow:hidden; border:1px solid #2a2a32; } .video-progress-bar { width:0%; height:100%; background:linear-gradient(90deg,#00b0ff,#00e676); transition:width 1s linear; } .video-ad-badge { font-size:11px; color:#8e8e93; letter-spacing:0.5px; } .video-timer-text { font-size:14px; margin-bottom:15px; } .video-btn { padding:10px 20px; background:#00e676; border:none; color:#052e16; font-weight:bold; border-radius:4px; cursor:pointer; } .video-btn:disabled { background:#3a3a40!important; color:#8e8e93!important; cursor:not-allowed!important; opacity:0.6; } `;
             if (adsSize === 'leaderboard') adsStyle += ` .fake-ad { width: 728px; height: 90px; max-width: 95%; } `; else if (adsSize === 'square') adsStyle += ` .fake-ad { width: 336px; height: 280px; max-width: 95%; } `; else if (adsSize === 'skyscraper') adsStyle += ` .fake-ad { width: 160px; height: 600px; float: left; margin: 10px; max-height: 95%; } `; else adsStyle += ` .fake-ad { width: calc(100% - 20px); } `;
@@ -7728,246 +8148,11 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 const adBadge = (adsLocation === 'video-forced')
                     ? 'KHÔNG THỂ BỎ QUA'
                     : `CÓ THỂ BỎ QUA SAU ${skipAfter}s`;
-
-                adsHTML = `<div id="video-ad" class="video-ad-overlay"><div class="video-box"><span>${adTitle}</span><div class="video-progress"><div id="video-progress-bar" class="video-progress-bar"></div></div><span class="video-ad-badge">${adBadge}</span></div><div id="video-timer" class="video-timer-text">Đang tải quảng cáo...</div><button id="video-close-btn" class="video-btn" disabled onclick="if(!this.disabled){window.parent.postMessage({type:'close-video-ad'},'*'); var b=document.getElementById('video-ad'); if(b) b.remove();}">🔒 Vui lòng xem quảng cáo...</button></div>`;
-
-                adsJS = `(function() {
-    var total = ${totalTime}, skipAfter = ${skipAfter}, elapsed = 0;
-    var timer = document.getElementById('video-timer');
-    var btn = document.getElementById('video-close-btn');
-    var bar = document.getElementById('video-progress-bar');
-    if (!timer || !btn) return;
-
-    function render() {
-        var remain = Math.max(0, total - elapsed);
-        if (bar) bar.style.width = Math.min(100, (elapsed / total) * 100).toFixed(2) + '%';
-
-        if (remain <= 0) {
-            timer.textContent = '✅ Bạn đã xem xong quảng cáo!';
-            btn.disabled = false;
-            btn.textContent = '▶ VÀO TRANG WEB';
-        } else if (elapsed >= skipAfter) {
-            timer.textContent = 'Quảng cáo còn ' + remain + ' giây — bạn được bỏ qua ngay!';
-            btn.disabled = false;
-            btn.textContent = '⏩ BỎ QUA QUẢNG CÁO';
-        } else {
-            timer.textContent = 'Quảng cáo kết thúc sau ' + remain + ' giây...';
-            btn.disabled = true;
-            btn.textContent = (skipAfter >= total)
-                ? '🔒 Phải xem hết ' + remain + 's mới vào được web'
-                : '🔒 Bỏ qua được sau ' + (skipAfter - elapsed) + ' giây';
-        }
-    }
-
-    render();
-    var interval = setInterval(function() {
-        elapsed++;
-        render();
-        if (elapsed >= total) clearInterval(interval);
-    }, 1000);
-})();`;
+                adsHTML = `<div id="video-ad-overlay" class="video-ad-overlay"><div class="video-box"><div style="font-size:36px;">🎬</div><div style="font-size:13px;letter-spacing:1px;text-transform:uppercase;">${adTitle}</div><div class="video-progress"><div id="video-pbar" class="video-progress-bar"></div></div><div class="video-ad-badge">${adBadge}</div></div><div class="video-timer-text" id="video-timer">Đang phát quảng cáo: <b id="video-timer-sec">${totalTime}</b>s</div><button id="video-skip-btn" class="video-btn" disabled onclick="parent.postMessage({type:'close-video-ad'}, '*')">${adsLocation === 'video-forced' ? 'Vui lòng xem hết...' : 'Bỏ qua sau ' + skipAfter + 's'}</button></div>`;
+                adsJS = `(function(){let t=${totalTime};let s=${skipAfter};const el=document.getElementById('video-timer-sec');const btn=document.getElementById('video-skip-btn');const pbar=document.getElementById('video-pbar');const total=t;const iv=setInterval(()=>{t--;const elapsed=total-t;if(pbar)pbar.style.width=Math.min(100,Math.round((elapsed/total)*100))+'%';if(el)el.textContent=t;if('${adsLocation}'==='video-skippable'){const left=Math.max(0,s-elapsed);if(left>0){if(btn)btn.textContent='Bỏ qua sau '+left+'s';}else{if(btn){btn.disabled=false;btn.textContent='⏩ Bỏ Qua Quảng Cáo';}}}if(t<=0){clearInterval(iv);if(btn){btn.disabled=false;btn.textContent='▶ Vào Xem Trang Web';}if('${adsLocation}'==='video-forced'){setTimeout(()=>{window.parent.postMessage({type:'close-video-ad'},'*');},600);}}},1000);})();`;
             }
+
             const consoleInterceptorScript = `<script>(function() { const origLog = console.log; const origErr = console.error; const origWarn = console.warn; console.log = function(...args) { window.parent.postMessage({ type: 'log', data: args.join(' ') }, '*'); origLog.apply(console, args); }; console.error = function(...args) { window.parent.postMessage({ type: 'error', data: args.join(' ') }, '*'); origErr.apply(console, args); }; console.warn = function(...args) { window.parent.postMessage({ type: 'warn', data: args.join(' ') }, '*'); origWarn.apply(console, args); }; window.onerror = function(m, s, l) { window.parent.postMessage({ type: 'error', data: m + " (Dòng " + l + ")" }, '*'); }; })();<\/script>`;
-
-            const pythonRunnerScript = py.trim() ? `<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"><\/script>
-            <script>
-            (async function() {
-                const rawPy = ${JSON.stringify(py)};
-                if (rawPy && rawPy.trim()) {
-                    if (typeof loadPyodide === 'function') {
-                        try {
-                            console.log("⏳ Đang khởi chạy môi trường Python (Pyodide)...");
-                            if (!window._pyodideInstance) {
-                                window._pyodideInstance = await loadPyodide();
-                            }
-
-                            function printToScreen(text, isError = false) {
-                                let pyContainer = document.getElementById('python-output');
-                                if (!pyContainer) {
-                                    pyContainer = document.createElement('div');
-                                    pyContainer.id = 'python-output';
-                                    pyContainer.style.cssText = 'background: #18181b; color: #4ade80; border: 1px solid #27272a; padding: 14px; margin: 15px auto; border-radius: 8px; font-family: "Courier New", Courier, monospace; font-size: 13px; white-space: pre-wrap; line-height: 1.5; max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); width: 90%; word-break: break-all;';
-                                    pyContainer.innerHTML = '<strong style="color: #38bdf8; display: block; margin-bottom: 8px; border-bottom: 1px solid #27272a; padding-bottom: 6px; font-size: 14px;">🐍 Terminal Python Output (${target.toUpperCase()}):</strong>';
-                                    document.body.appendChild(pyContainer);
-                                }
-                                const line = document.createElement('div');
-                                if (isError) line.style.color = '#f87171';
-                                line.textContent = text;
-                                pyContainer.appendChild(line);
-                            }
-
-                            window._pyodideInstance.setStdout({
-                                batched: (msg) => {
-                                    console.log(msg);
-                                    printToScreen(msg, false);
-                                }
-                            });
-
-                            window._pyodideInstance.setStderr({
-                                batched: (msg) => {
-                                    console.error(msg);
-                                    printToScreen(msg, true);
-                                }
-                            });
-
-                            window._pyodideInstance.setStdin({
-                                stdin: () => {
-                                    const val = prompt("🐍 Python (${target.toUpperCase()}) yêu cầu nhập dữ liệu (input):");
-                                    return val !== null ? val : "";
-                                }
-                            });
-
-                            console.log("📦 Đang tải các thư viện Python...");
-                            await window._pyodideInstance.loadPackagesFromImports(rawPy);
-                            await window._pyodideInstance.runPythonAsync(rawPy);
-
-                            if (rawPy.includes("matplotlib")) {
-                                try {
-                                    const imgData = await window._pyodideInstance.runPythonAsync(
-                                        "import io, base64\\n" +
-                                        "import matplotlib.pyplot as plt\\n" +
-                                        "if plt.get_fignums():\\n" +
-                                        "    buf = io.BytesIO()\\n" +
-                                        "    plt.savefig(buf, format='png', bbox_inches='tight')\\n" +
-                                        "    buf.seek(0)\\n" +
-                                        "    img_str = base64.b64encode(buf.read()).decode('utf-8')\\n" +
-                                        "    plt.close('all')\\n" +
-                                        "    img_str\\n" +
-                                        "else:\\n" +
-                                        "    ''"
-                                    );
-                                    if (imgData) {
-                                        let pyContainer = document.getElementById('python-output');
-                                        if (pyContainer) {
-                                            const img = document.createElement('img');
-                                            img.src = 'data:image/png;base64,' + imgData;
-                                            img.style.cssText = 'max-width: 100%; border-radius: 6px; margin-top: 10px; border: 1px solid #3f3f46; display: block;';
-                                            pyContainer.appendChild(img);
-                                        }
-                                    }
-                                } catch(e) { console.error("Lỗi xuất đồ thị:", e); }
-                            }
-                        } catch(err) {
-                            console.error("🐍 [Python Error] " + err.message);
-                        }
-                    }
-                }
-            })();
-            <\/script>` : '';
-
-            const cppRunnerScript = cpp.trim() ? `<script src="https://cdn.jsdelivr.net/npm/JSCPP@2.0.9/dist/JSCPP.es5.min.js"><\/script>
-            <script>
-            (function() {
-                const rawCpp = ${JSON.stringify(cpp)};
-                if (!rawCpp || !rawCpp.trim()) return;
-
-                function getOutputBody() {
-                    let cppContainer = document.getElementById('cpp-output');
-                    if (!cppContainer) {
-                        cppContainer = document.createElement('div');
-                        cppContainer.id = 'cpp-output';
-                        cppContainer.style.cssText = 'background: #18181b; color: #7dd3fc; border: 1px solid #27272a; padding: 14px; margin: 15px auto; border-radius: 8px; font-family: "Courier New", Courier, monospace; font-size: 13px; max-width: 95%; box-shadow: 0 4px 12px rgba(0,0,0,0.3); width: 90%; word-break: break-all;';
-                        cppContainer.innerHTML = '<strong style="color: #38bdf8; display: block; margin-bottom: 8px; border-bottom: 1px solid #27272a; padding-bottom: 6px; font-size: 14px;">⚙️ Terminal C++ Output (${target.toUpperCase()}):</strong><pre id="cpp-output-body" style="margin:0; white-space: pre-wrap; word-break: break-all; font-family: inherit; font-size: inherit;"></pre>';
-                        document.body.appendChild(cppContainer);
-                    }
-                    return document.getElementById('cpp-output-body');
-                }
-
-                function printToScreen(text, isError) {
-                    const body = getOutputBody();
-                    if (isError) {
-                        const span = document.createElement('span');
-                        span.style.color = '#f87171';
-                        span.textContent = text;
-                        body.appendChild(span);
-                    } else {
-                        body.appendChild(document.createTextNode(text));
-                    }
-                }
-
-                function getStdinIfNeeded() {
-                    let stdinData = "";
-                    if (/\\b(cin|scanf|getline|gets)\\b/.test(rawCpp)) {
-                        const userInput = prompt("⚙️ C++ (${target.toUpperCase()}) yêu cầu nhập dữ liệu (input):");
-                        stdinData = userInput !== null ? userInput : "";
-                    }
-                    return stdinData;
-                }
-
-                async function runCppOnline(stdinData, reasonMsg) {
-                    try {
-                        printToScreen((reasonMsg ? reasonMsg + "\\n" : "") + "🌐 Đang biên dịch trực tuyến GCC...\\n", false);
-                        const resp = await fetch('https://wandbox.org/api/compile.json', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                code: rawCpp,
-                                compiler: 'gcc-13.2.0',
-                                options: 'warning,gnu++17',
-                                'compiler-option-raw': '-std=gnu++17',
-                                stdin: stdinData || ''
-                            })
-                        });
-                        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-                        const data = await resp.json();
-                        if (data.compiler_error) printToScreen(data.compiler_error, true);
-                        if (data.compiler_message && !data.compiler_error) printToScreen(data.compiler_message + "\\n", false);
-                        if (data.program_output) printToScreen(data.program_output, false);
-                        if (data.program_error) printToScreen(data.program_error, true);
-                        const exitCode = (typeof data.status !== 'undefined') ? data.status : (data.signal || '?');
-                        printToScreen("\\n[Mã thoát: " + exitCode + "]", false);
-                        return true;
-                    } catch (err) {
-                        printToScreen("❌ Lỗi biên dịch: " + err.message, true);
-                        return false;
-                    }
-                }
-
-                async function runCpp() {
-                    const stdinData = getStdinIfNeeded();
-                    let jscppOk = false;
-                    try {
-                        const config = {
-                            stdio: {
-                                write: function(s) {
-                                    printToScreen(s, false);
-                                    return s.length;
-                                }
-                            },
-                            unsigned_overflow: "warn"
-                        };
-                        const exitCode = JSCPP.run(rawCpp, stdinData, config);
-                        printToScreen("\\n[Mã thoát: " + exitCode + "]", false);
-                        jscppOk = true;
-                    } catch (err) {
-                        printToScreen("⚠️ JSCPP không hỗ trợ đoạn mã này: " + err.message + "\\n", true);
-                    }
-
-                    if (!jscppOk) {
-                        await runCppOnline(stdinData, null);
-                    }
-                }
-
-                if (typeof JSCPP !== 'undefined') {
-                    runCpp();
-                } else {
-                    let waited = 0;
-                    const waitTimer = setInterval(function() {
-                        if (typeof JSCPP !== 'undefined') {
-                            clearInterval(waitTimer);
-                            runCpp();
-                        } else {
-                            waited += 200;
-                            if (waited >= 8000) {
-                                clearInterval(waitTimer);
-                                const stdinData = getStdinIfNeeded();
-                                runCppOnline(stdinData, "⚠️ Thử biên dịch trực tuyến.");
-                            }
-                        }
-                    }, 200);
-                }
-            })();
-            <\/script>` : '';
 
             const trimmedH = h.trim();
             const isFullDoc = /^<!DOCTYPE/i.test(trimmedH) || /^<html/i.test(trimmedH);
@@ -7983,7 +8168,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                     fullHtml = headInjection + fullHtml;
                 }
 
-                const bodyEndInjection = `\n<script>\n${j}\n${adsJS}\n<\/script>\n${pythonRunnerScript}\n${cppRunnerScript}\n`;
+                const bodyEndInjection = `\n<script>\n${j}\n${adsJS}\n<\/script>\n`;
                 if (/<\/body>/i.test(fullHtml)) {
                     fullHtml = fullHtml.replace(/<\/body>/i, `${bodyEndInjection}</body>`);
                 } else {
@@ -8012,7 +8197,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
 
             const isVideoAdMode = (adsLocation === 'video-forced' || adsLocation === 'video-skippable');
             let finalBody = (adsLocation === 'top' || adsLocation === 'popup' || isVideoAdMode) ? adsHTML + h : (adsLocation === 'bottom' ? h + adsHTML : h);
-            return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n${adsStyle}\n${c}\n</style>\n${consoleInterceptorScript}\n</head>\n<body>\n${finalBody}\n<script>\n${j}\n${adsJS}\n<\/script>\n${pythonRunnerScript}\n${cppRunnerScript}\n</body>\n</html>`;
+            return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<style>\n${adsStyle}\n${c}\n</style>\n${consoleInterceptorScript}\n</head>\n<body>\n${finalBody}\n<script>\n${j}\n${adsJS}\n<\/script>\n</body>\n</html>`;
         }
 
         function runCode() {
@@ -8071,8 +8256,8 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             initCustomMakerFeature();
 
             let initialData = {
-                p1: { html: '', css: '', js: '', py: '', cpp: '' },
-                p2: { html: '', css: '', js: '', py: '', cpp: '' }
+                p1: { html: '', css: '', js: '' },
+                p2: { html: '', css: '', js: '' }
             };
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -8088,20 +8273,16 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 initialData.p1.html = decodeParam('h1') || decodeParam('h') || defaultTemplates.p1.html;
                 initialData.p1.css = decodeParam('c1') || decodeParam('c') || defaultTemplates.p1.css;
                 initialData.p1.js = decodeParam('j1') || decodeParam('j') || defaultTemplates.p1.js;
-                initialData.p1.py = decodeParam('p1') || decodeParam('p') || defaultTemplates.p1.py;
-                initialData.p1.cpp = decodeParam('x1') || decodeParam('x') || defaultTemplates.p1.cpp;
 
                 initialData.p2.html = decodeParam('h2') || defaultTemplates.p2.html;
                 initialData.p2.css = decodeParam('c2') || defaultTemplates.p2.css;
                 initialData.p2.js = decodeParam('j2') || defaultTemplates.p2.js;
-                initialData.p2.py = decodeParam('p2') || defaultTemplates.p2.py;
-                initialData.p2.cpp = decodeParam('x2') || defaultTemplates.p2.cpp;
 
                 if (urlParams.get('w2') === 'true') isWeb2Enabled = true;
                 window.history.replaceState({}, document.title, window.location.pathname);
             } else {
                 ['p1', 'p2'].forEach(p => {
-                    ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+                    ['html', 'css', 'js'].forEach(t => {
                         let legacyKey = (p === 'p1') ? `codespace_${t}` : `codespace_html2`;
                         let key = `codespace_${p}_${t}`;
                         let saved = localStorage.getItem(key) || (t === 'html' && p === 'p2' ? localStorage.getItem(legacyKey) : null);
@@ -8159,23 +8340,17 @@ Phần <b>Kết quả, Chạy code và các menu khác vẫn hoạt động bìn
                 models.p1.html = monaco.editor.createModel(initialData.p1.html, 'html');
                 models.p1.css = monaco.editor.createModel(initialData.p1.css, 'css');
                 models.p1.js = monaco.editor.createModel(initialData.p1.js, 'javascript');
-                models.p1.py = monaco.editor.createModel(initialData.p1.py, 'python');
-                models.p1.cpp = monaco.editor.createModel(initialData.p1.cpp, 'cpp');
 
                 models.p2.html = monaco.editor.createModel(initialData.p2.html, 'html');
                 models.p2.css = monaco.editor.createModel(initialData.p2.css, 'css');
                 models.p2.js = monaco.editor.createModel(initialData.p2.js, 'javascript');
-                models.p2.py = monaco.editor.createModel(initialData.p2.py, 'python');
-                models.p2.cpp = monaco.editor.createModel(initialData.p2.cpp, 'cpp');
 
                 editors.html = monaco.editor.create(document.getElementById('container-html'), { model: models.p1.html, ...config });
                 editors.css = monaco.editor.create(document.getElementById('container-css'), { model: models.p1.css, ...config });
                 editors.js = monaco.editor.create(document.getElementById('container-js'), { model: models.p1.js, ...config });
-                editors.py = monaco.editor.create(document.getElementById('container-py'), { model: models.p1.py, ...config });
-                editors.cpp = monaco.editor.create(document.getElementById('container-cpp'), { model: models.p1.cpp, ...config });
 
                 ['p1', 'p2'].forEach(p => {
-                    ['html', 'css', 'js', 'py', 'cpp'].forEach(t => {
+                    ['html', 'css', 'js'].forEach(t => {
                         models[p][t].onDidChangeContent(() => {
                             onCodeInput(p, t);
                             if (editors[t]) updateHttpsHighlighting(editors[t]);
