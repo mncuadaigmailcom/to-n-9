@@ -1863,6 +1863,7 @@
             <div style="display: flex; gap: 6px; margin-bottom: 15px;">
                 <button id="btn-bot-mode-create" class="bot-mode-tab active" onclick="switchBotMode('create')">➕ 1. Tạo Web Mới</button>
                 <button id="btn-bot-mode-edit" class="bot-mode-tab" onclick="switchBotMode('edit')">✏️ 2. Sửa Web Cũ</button>
+                <button id="btn-bot-mode-script" class="bot-mode-tab" onclick="switchBotMode('script')">⚡ 3. Tạo Script (Link CDN)</button>
             </div>
 
             <div id="bot-sec-create">
@@ -1898,12 +1899,57 @@
                 <button class="btn-bot-github" style="width:100%; padding:10px; font-size:0.9rem; background: linear-gradient(135deg, #f57c00, #ffb300) !important;" onclick="updateSelectedRepo()">✏️ SỬA / CẬP NHẬT KHO LƯU TRỮ NÀY</button>
             </div>
 
+            <div id="bot-sec-script" style="display:none;">
+                <div class="setting-item">
+                    <label for="github-script-repo">Tên Repository (Kho chứa Script):</label>
+                    <input type="text" id="github-script-repo" value="my-scripts" placeholder="my-scripts" />
+                    <span style="font-size:0.7rem; color:#888;">Kho chứa sẽ được tự động tạo mới nếu chưa tồn tại</span>
+                </div>
+                <div class="setting-item">
+                    <label for="github-script-filename">Tên File Script (.js):</label>
+                    <input type="text" id="github-script-filename" value="script.js" placeholder="script.js hoặc app.js, widget.js..." />
+                </div>
+                <div class="setting-item">
+                    <label for="github-script-source">Nội dung Script muốn tạo link:</label>
+                    <select id="github-script-source">
+                        <option value="p1_js">⚡ JS Trang 1 (Mã JavaScript đang viết)</option>
+                        <option value="p2_js">⚡ JS Trang 2 (Nếu đang dùng Trang 2)</option>
+                        <option value="p1_bundle">📦 Gói Tự Chạy (Tự nhúng CSS + chạy JS vào trang đích)</option>
+                    </select>
+                </div>
+                <button class="btn-bot-github" style="width:100%; padding:10px; font-size:0.9rem; background: linear-gradient(135deg, #10b981, #06b6d4) !important;" onclick="runBossBotScriptDeploy()">⚡ KÍCH HOẠT BOSS BOT TẠO LINK SCRIPT</button>
+            </div>
+
             <div id="bot-logs" class="bot-status-box">🤖 Boss Bot sẵn sàng nhận lệnh...</div>
 
             <div id="bot-link-box" style="display:none; margin-top:10px; background:#1a1a1e; border:1px solid #00d2ff; border-radius:6px; padding:8px; align-items:center; gap:6px;">
-                <span style="font-size:0.75rem; color:#888; flex-shrink:0;">🌐 Link:</span>
+                <span style="font-size:0.75rem; color:#888; flex-shrink:0;">🌐 Link Web:</span>
                 <input id="bot-link-input" type="text" readonly style="flex:1; min-width:0; background:transparent; border:none; color:#00d2ff; font-size:0.75rem; outline:none;" onclick="this.select();" />
                 <button type="button" style="flex-shrink:0; padding:6px 10px; background:linear-gradient(135deg, #6e40c9, #00d2ff); border:none; color:white; border-radius:4px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="copyBotSiteLink()">📋 Copy</button>
+            </div>
+
+            <div id="bot-script-link-box" style="display:none; margin-top:10px; background:#121824; border:1px solid #10b981; border-radius:6px; padding:10px; flex-direction:column; gap:8px;">
+                <div style="font-size:0.8rem; font-weight:bold; color:#10b981; display:flex; align-items:center; gap:6px;">
+                    <span>🎉 Link Script CDN Đã Hoạt Động!</span>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-size:0.72rem; color:#94a3b8;">🔗 Link Script Trực Tiếp (jsDelivr CDN siêu tốc):</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input id="bot-script-cdn-input" type="text" readonly style="flex:1; min-width:0; background:#1e293b; border:1px solid #334155; color:#38bdf8; font-size:0.75rem; padding:6px 8px; border-radius:4px; outline:none;" onclick="this.select();" />
+                        <button type="button" style="flex-shrink:0; padding:6px 10px; background:linear-gradient(135deg, #10b981, #06b6d4); border:none; color:white; border-radius:4px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="copyBotScriptUrl('cdn')">📋 Copy Link</button>
+                    </div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-size:0.72rem; color:#94a3b8;">📜 Mã Nhúng HTML &lt;script&gt; (Dán vào bất kỳ web nào):</span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input id="bot-script-tag-input" type="text" readonly style="flex:1; min-width:0; background:#1e293b; border:1px solid #334155; color:#a78bfa; font-size:0.75rem; padding:6px 8px; border-radius:4px; outline:none;" onclick="this.select();" />
+                        <button type="button" style="flex-shrink:0; padding:6px 10px; background:linear-gradient(135deg, #8b5cf6, #d946ef); border:none; color:white; border-radius:4px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="copyBotScriptUrl('tag')">📋 Copy Thẻ</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:12px; margin-top:2px; font-size:0.72rem;">
+                    <a id="bot-script-test-link" href="#" target="_blank" style="color:#00d2ff; text-decoration:underline;">↗ Mở thử file Script</a>
+                    <a id="bot-script-repo-link" href="#" target="_blank" style="color:#94a3b8; text-decoration:underline;">📁 Xem kho GitHub</a>
+                </div>
             </div>
         </div>
     </div>
@@ -7331,7 +7377,20 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
         }
 
         function toggleSettingsModal(show) { const modal = document.getElementById('settings-modal'); if (show) { modal.classList.add('active'); const isBanner = ['top', 'bottom', 'popup'].includes(adsLocation); document.getElementById('ads-size-container').style.display = isBanner ? 'flex' : 'none'; } else { modal.classList.remove('active'); } }
-        function toggleBotModal(show) { const modal = document.getElementById('bot-modal'); if (show) { modal.classList.add('active'); const savedToken = localStorage.getItem('codespace_github_token'); if(savedToken) document.getElementById('github-token').value = savedToken; const linkBox = document.getElementById('bot-link-box'); if (linkBox) linkBox.style.display = 'none'; } else { modal.classList.remove('active'); } }
+        function toggleBotModal(show) {
+            const modal = document.getElementById('bot-modal');
+            if (show) {
+                modal.classList.add('active');
+                const savedToken = localStorage.getItem('codespace_github_token');
+                if (savedToken) document.getElementById('github-token').value = savedToken;
+                const linkBox = document.getElementById('bot-link-box');
+                if (linkBox) linkBox.style.display = 'none';
+                const scriptBox = document.getElementById('bot-script-link-box');
+                if (scriptBox) scriptBox.style.display = 'none';
+            } else {
+                modal.classList.remove('active');
+            }
+        }
         function onAdsLocationChange(select) {
             adsLocation = select.value;
             safeSetLocalStorage('codespace_ads_location', adsLocation);
@@ -7348,13 +7407,7 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             logs.scrollTop = logs.scrollHeight;
         }
 
-        function showBotSiteLink(url) {
-            const box = document.getElementById('bot-link-box');
-            const input = document.getElementById('bot-link-input');
-            if (!box || !input) return;
-            input.value = url;
-            box.style.display = 'flex';
-        }
+
 
         function onRepoListChange() {
             const select = document.getElementById('github-repo-list');
@@ -7386,22 +7439,65 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             }
         }
 
+        function showBotSiteLink(url) {
+            const scriptBox = document.getElementById('bot-script-link-box');
+            if (scriptBox) scriptBox.style.display = 'none';
+            const box = document.getElementById('bot-link-box');
+            const input = document.getElementById('bot-link-input');
+            if (!box || !input) return;
+            input.value = url;
+            box.style.display = 'flex';
+        }
+
+        function showBotScriptLink(cdnUrl, scriptTag, rawUrl, repoUrl) {
+            const siteBox = document.getElementById('bot-link-box');
+            if (siteBox) siteBox.style.display = 'none';
+            const box = document.getElementById('bot-script-link-box');
+            const cdnInput = document.getElementById('bot-script-cdn-input');
+            const tagInput = document.getElementById('bot-script-tag-input');
+            const testLink = document.getElementById('bot-script-test-link');
+            const repoLink = document.getElementById('bot-script-repo-link');
+            if (!box) return;
+            if (cdnInput) cdnInput.value = cdnUrl;
+            if (tagInput) tagInput.value = scriptTag;
+            if (testLink) testLink.href = cdnUrl;
+            if (repoLink) repoLink.href = repoUrl;
+            box.style.display = 'flex';
+        }
+
+        function copyBotScriptUrl(type) {
+            const input = document.getElementById(type === 'tag' ? 'bot-script-tag-input' : 'bot-script-cdn-input');
+            if (!input || !input.value) return;
+            const text = input.value;
+            input.select();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopyToast(type === 'tag' ? '📋 Đã sao chép mã thẻ <script>!' : '📋 Đã sao chép Link Script CDN!');
+                }).catch(() => {
+                    fallbackSharePrompt(text);
+                });
+            } else {
+                fallbackSharePrompt(text);
+            }
+        }
+
         function switchBotMode(mode) {
             const secCreate = document.getElementById('bot-sec-create');
             const secEdit = document.getElementById('bot-sec-edit');
+            const secScript = document.getElementById('bot-sec-script');
             const btnCreate = document.getElementById('btn-bot-mode-create');
             const btnEdit = document.getElementById('btn-bot-mode-edit');
+            const btnScript = document.getElementById('btn-bot-mode-script');
 
-            if (mode === 'create') {
-                secCreate.style.display = 'block';
-                secEdit.style.display = 'none';
-                btnCreate.classList.add('active');
-                btnEdit.classList.remove('active');
-            } else {
-                secCreate.style.display = 'none';
-                secEdit.style.display = 'block';
-                btnEdit.classList.add('active');
-                btnCreate.classList.remove('active');
+            if (btnCreate) btnCreate.classList.toggle('active', mode === 'create');
+            if (btnEdit) btnEdit.classList.toggle('active', mode === 'edit');
+            if (btnScript) btnScript.classList.toggle('active', mode === 'script');
+
+            if (secCreate) secCreate.style.display = mode === 'create' ? 'block' : 'none';
+            if (secEdit) secEdit.style.display = mode === 'edit' ? 'block' : 'none';
+            if (secScript) secScript.style.display = mode === 'script' ? 'block' : 'none';
+
+            if (mode === 'edit') {
                 const token = document.getElementById('github-token').value.trim();
                 if (token) fetchUserRepos();
             }
@@ -7512,6 +7608,141 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
                 const siteUrl = `https://${username}.github.io/${selectedRepo}/`;
                 botLog(`🌐 Link trang web: ${siteUrl}`);
                 showBotSiteLink(siteUrl);
+            } catch (err) {
+                botLog(`❌ [LỖI]: ${err.message}`);
+            }
+        }
+
+        async function runBossBotScriptDeploy() {
+            const token = document.getElementById('github-token').value.trim();
+            let repo = document.getElementById('github-script-repo').value.trim() || 'my-scripts';
+            let filename = document.getElementById('github-script-filename').value.trim() || 'script.js';
+            const sourceChoice = document.getElementById('github-script-source').value;
+
+            repo = repo.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+            if (!filename.toLowerCase().endsWith('.js')) {
+                filename += '.js';
+            }
+            filename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+
+            if (!token) {
+                alert("Vui lòng nhập GitHub Personal Access Token!");
+                return;
+            }
+
+            safeSetLocalStorage('codespace_github_token', token);
+            const botLogs = document.getElementById('bot-logs');
+            if (botLogs) botLogs.textContent = "🤖 Boss Bot đang khởi tạo tạo Link Script...";
+
+            const siteBox = document.getElementById('bot-link-box');
+            const scriptBox = document.getElementById('bot-script-link-box');
+            if (siteBox) siteBox.style.display = 'none';
+            if (scriptBox) scriptBox.style.display = 'none';
+
+            try {
+                botLog("Đang xác thực tài khoản GitHub...");
+                const userRes = await fetch('https://api.github.com/user', {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (!userRes.ok) throw new Error("Token không hợp lệ hoặc hết hạn!");
+                const userData = await userRes.json();
+                const username = userData.login;
+                botLog(`Xin chào ${username}!`);
+
+                botLog(`Đang kiểm tra kho lưu trữ "${repo}"...`);
+                let repoRes = await fetch(`https://api.github.com/repos/${username}/${repo}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (repoRes.status === 404) {
+                    botLog(`Đang tạo kho lưu trữ mới "${repo}" để chứa script...`);
+                    const createRepoRes = await fetch('https://api.github.com/user/repos', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `token ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            name: repo,
+                            description: "Kho lưu trữ Script CDN tự động tạo bởi Boss Bot CodeSpace",
+                            auto_init: true
+                        })
+                    });
+                    if (!createRepoRes.ok) throw new Error("Không thể tạo kho lưu trữ mới!");
+                    botLog(`Tạo kho "${repo}" thành công!`);
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+
+                let scriptCode = '';
+                if (sourceChoice === 'p2_js') {
+                    scriptCode = getCode('p2', 'js') || '// JavaScript Trang 2\n';
+                } else if (sourceChoice === 'p1_bundle') {
+                    const cssCode = getCode('p1', 'css') || '';
+                    const jsCode = getCode('p1', 'js') || '';
+                    const escapedCss = JSON.stringify(cssCode);
+                    scriptCode = `/* 📦 Bundle Script được tạo tự động bởi Boss Bot CodeSpace */\n(function() {\n    'use strict';\n    const css = ${escapedCss};\n    if (css && css.trim()) {\n        const style = document.createElement('style');\n        style.setAttribute('data-injected-by', 'boss-bot-codespace');\n        style.textContent = css;\n        document.head ? document.head.appendChild(style) : document.documentElement.appendChild(style);\n    }\n    // Logic JavaScript\n    ${jsCode}\n})();`;
+                } else {
+                    scriptCode = getCode('p1', 'js') || '// JavaScript Trang 1\n';
+                }
+
+                botLog(`Chuẩn bị nội dung script "${filename}" (${scriptCode.length} ký tự)...`);
+
+                const utf8Bytes = new TextEncoder().encode(scriptCode);
+                let binaryStr = '';
+                utf8Bytes.forEach(b => binaryStr += String.fromCharCode(b));
+                const contentBase64 = btoa(binaryStr);
+
+                let fileSha = null;
+                const fileCheckRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (fileCheckRes.ok) {
+                    const fileData = await fileCheckRes.json();
+                    fileSha = fileData.sha;
+                    botLog(`File "${filename}" đã có trên kho, sẽ ghi đè phiên bản mới...`);
+                }
+
+                botLog(`Đang đẩy file "${filename}" lên GitHub...`);
+                const pushRes = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${filename}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `🤖 Boss Bot cập nhật link script: ${filename}`,
+                        content: contentBase64,
+                        sha: fileSha || undefined
+                    })
+                });
+
+                if (!pushRes.ok) {
+                    const errData = await pushRes.json().catch(() => ({}));
+                    throw new Error(`Đẩy file script thất bại: ${errData.message || pushRes.statusText}`);
+                }
+
+                botLog(`🎉 ĐÃ TẢI SCRIPT LÊN THÀNH CÔNG!`);
+
+                fetch(`https://api.github.com/repos/${username}/${repo}/pages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ source: { branch: 'main', path: '/' } })
+                }).catch(() => {});
+
+                const cdnUrl = `https://cdn.jsdelivr.net/gh/${username}/${repo}@main/${filename}`;
+                const scriptTag = `<script src="${cdnUrl}"><\/script>`;
+                const rawUrl = `https://raw.githack.com/${username}/${repo}/main/${filename}`;
+                const repoUrl = `https://github.com/${username}/${repo}`;
+
+                botLog(`🔗 Link CDN jsDelivr: ${cdnUrl}`);
+                botLog(`📜 Mã nhúng: ${scriptTag}`);
+
+                showBotScriptLink(cdnUrl, scriptTag, rawUrl, repoUrl);
+                showAutoPasteToast('⚡ Đã tạo xong Link Script CDN!');
             } catch (err) {
                 botLog(`❌ [LỖI]: ${err.message}`);
             }
