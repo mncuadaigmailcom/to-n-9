@@ -7242,6 +7242,33 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
             }, 250));
         }
 
+        function saveAllCodeImmediately() {
+            clearTimeout(typingTimer);
+            try {
+                ['p1', 'p2'].forEach(p => {
+                    ['html', 'css', 'js'].forEach(t => {
+                        const val = getCode(p, t);
+                        if (val !== undefined && val !== null) {
+                            safeSetLocalStorage(`codespace_${p}_${t}`, val);
+                        }
+                    });
+                });
+                const indicator = document.getElementById('save-indicator');
+                if (indicator) indicator.textContent = "Đã lưu tự động";
+            } catch (e) {
+                console.warn('Lỗi lưu tự động khi rời trang:', e);
+            }
+        }
+
+        window.addEventListener('beforeunload', saveAllCodeImmediately);
+        window.addEventListener('pagehide', saveAllCodeImmediately);
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                saveAllCodeImmediately();
+            }
+        });
+        window.addEventListener('blur', saveAllCodeImmediately);
+
         function onCodeInput(page, type) {
             showSaveStatus();
             clearTimeout(typingTimer);
