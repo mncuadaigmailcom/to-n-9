@@ -108,3 +108,4 @@
 | 14 | ⭐ Tính năng | Tự động lưu toàn bộ code ngay khi rời khỏi trang web | ✅ Đã tích hợp |
 | 15 | ⭐ Yêu cầu | Gỡ bỏ hoàn toàn tính năng Python và C++ | ✅ Đã hoàn tất |
 | 16 | ⚡ Tính năng mới | Boss Bot GitHub: Tạo Script bằng link CDN jsDelivr / nhúng web | ✅ Đã hoàn tất |
+| 17 | 🔄 Tính năng mới | Boss Bot GitHub: Sửa & Cập nhật file Script có sẵn trên GitHub | ✅ Đã hoàn tất |
