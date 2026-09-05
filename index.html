@@ -2154,8 +2154,27 @@
             if (e.key !== 'Escape') return;
             const cModal = document.getElementById('app-confirm-modal');
             const pModal = document.getElementById('app-prompt-modal');
-            if (cModal && cModal.classList.contains('active')) { e.preventDefault(); resolveAppConfirm(false); }
-            else if (pModal && pModal.classList.contains('active')) { e.preventDefault(); resolveAppPrompt(false); }
+            if (cModal && cModal.classList.contains('active')) { e.preventDefault(); resolveAppConfirm(false); return; }
+            if (pModal && pModal.classList.contains('active')) { e.preventDefault(); resolveAppPrompt(false); return; }
+
+            // Đóng nhanh các modal / menu đang mở khi nhấn Escape
+            if (document.getElementById('web-url-modal')?.classList.contains('active')) { toggleWebUrlModal(false); return; }
+            if (document.getElementById('ai-web-menu-modal')?.classList.contains('active')) { closeAIWebMenu(); return; }
+            if (document.getElementById('save-modal')?.classList.contains('active')) { toggleSaveModal(false); return; }
+            if (document.getElementById('settings-modal')?.classList.contains('active')) { toggleSettingsModal(false); return; }
+            if (document.getElementById('bot-modal')?.classList.contains('active')) { toggleBotModal(false); return; }
+            if (document.getElementById('cdn-modal')?.classList.contains('active')) { toggleCDNModal(false); return; }
+            if (document.getElementById('create-app-modal')?.classList.contains('active')) { toggleCreateAppModal(false); return; }
+            if (document.getElementById('ai-key-modal')?.classList.contains('active')) { closeAIKeyModal(); return; }
+            if (document.getElementById('cf-saved-modal')?.classList.contains('active')) { closeSavedCustomFeaturesMenu(); return; }
+            if (document.getElementById('cf-center-modal')?.classList.contains('active')) { closeCustomFeatureRunner(); return; }
+            if (document.getElementById('combo-manage-modal')?.classList.contains('active')) { closeComboManage(); return; }
+            if (document.getElementById('combo-edit-modal')?.classList.contains('active')) { closeComboEditor(); return; }
+            if (document.getElementById('combo-menu-modal')?.classList.contains('active')) { closeComboMenu(); return; }
+            const searchBar = document.getElementById('search-bar');
+            if (searchBar && searchBar.style.display === 'flex') { toggleSearchBar(); return; }
+            closeDownloadMenu();
+            closeCopyCodeMenu();
         });
 
         /* ==================================================================== */
@@ -2385,7 +2404,7 @@
             const item = savedProjects.find(s => s.id === id);
             if (!item || !item.data) return;
             try {
-                const page = (item.data.p1 && item.data.p1.html) ? 'p1' : 'p2';
+                const page = item.page || ((item.data.p1 && item.data.p1.html) ? 'p1' : (item.web2 ? 'p2' : 'p1'));
                 const d = item.data[page] || {};
                 const html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title>${escapeHtml(item.name || 'Ban luu')}</title>\n<style>\n${d.css || ''}\n</style>\n</head>\n<body>\n${d.html || ''}\n<script>\n${String(d.js || '').replace(/<\/script/gi, '<\\/script')}\n<\/script>\n</body>\n</html>`;
                 const safeFile = (item.name || 'ban-luu').replace(/[^a-zA-Z0-9\-_ ]/g, '').trim().replace(/\s+/g, '-') || 'ban-luu';
@@ -3312,17 +3331,12 @@
 
         function previewCustomFeaturePayloadInSavedMenu() {
             const payload = buildCustomFeaturePayload(null, {});
-            const el = document.getElementById('cf-saved-server-payload');
+            const el = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (el) el.value = JSON.stringify(payload, null, 2);
-            const other = document.getElementById('cf-server-payload');
-            if (other) other.value = JSON.stringify(payload, null, 2);
             cfServerLog('Đã tạo payload ' + payload.count + ' tính năng.');
         }
 
         async function sendSavedMenuPayload() {
-            const src = document.getElementById('cf-saved-server-payload');
-            const dst = document.getElementById('cf-server-payload');
-            if (src && dst) dst.value = src.value;
             try {
                 await sendCustomFeaturesToServer({ useEdited: true });
             } catch (e) {
@@ -3773,9 +3787,13 @@
             const featureExtra = (list.length === 1) ? parseCfJsonObject(list[0].apiExtra, {}) : {};
             const extra = Object.assign({}, featureExtra, (options.extra && typeof options.extra === 'object') ? options.extra : {});
             let payload;
-            const edited = document.getElementById('cf-server-payload');
+            const edited = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (options.useEdited && edited && edited.value.trim()) {
-                payload = JSON.parse(edited.value);
+                try {
+                    payload = JSON.parse(edited.value);
+                } catch (e) {
+                    throw new Error('Dữ liệu JSON trong ô tải lên không hợp lệ: ' + (e.message || e));
+                }
             } else {
                 payload = buildCustomFeaturePayload(ids, extra);
                 if (edited && !options.silent) edited.value = JSON.stringify(payload, null, 2);
@@ -3907,7 +3925,7 @@
         function copyCustomFeatureExport() {
             const payload = buildCustomFeaturePayload(null, {});
             const text = JSON.stringify(payload, null, 2);
-            const box = document.getElementById('cf-server-payload');
+            const box = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (box) box.value = text;
             const done = function () {
                 cfServerLog('Đã sao chép JSON ' + payload.count + ' tính năng.');
@@ -3923,7 +3941,7 @@
         function downloadCustomFeatureExport() {
             const payload = buildCustomFeaturePayload(null, {});
             const text = JSON.stringify(payload, null, 2);
-            const box = document.getElementById('cf-server-payload');
+            const box = document.getElementById('cf-saved-server-payload') || document.getElementById('cf-server-payload');
             if (box) box.value = text;
             downloadBlob(text, 'codespace-tinh-nang-pro-max.json', 'application/json');
             cfServerLog('Đã tải file JSON ' + payload.count + ' tính năng.');
@@ -4894,6 +4912,7 @@ Yêu cầu bắt buộc:
             if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
             const input = document.getElementById('ai-web-url');
             if (input) input.value = url;
+            aiWebRememberLastUrl(url);
             aiWebDockWindow();
             closeAIWebMenu();
         }
@@ -4901,6 +4920,9 @@ Yêu cầu bắt buộc:
         function openAIWebInTab() {
             const url = getAIWebMenuUrl();
             if (!url) { alert('⚠️ Vui lòng nhập link trang web hợp lệ!'); return; }
+            const input = document.getElementById('ai-web-url');
+            if (input) input.value = url;
+            aiWebRememberLastUrl(url);
             window.open(url, '_blank');
             closeAIWebMenu();
             showAutoPasteToast('↗ Đã mở "' + url + '" trong tab mới');
@@ -6935,6 +6957,8 @@ ${j}`;
             }
 
             zip.file("index.html", getCode('p1', 'html'));
+            zip.file("style.css", getCode('p1', 'css'));
+            zip.file("script.js", getCode('p1', 'js'));
 
             zip.generateAsync({ type: "blob" }).then(function (content) {
                 downloadBlob(content, "codespace_project.zip", "application/zip");
@@ -7094,9 +7118,19 @@ self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then
 
                 let source = buildFullSource(page);
                 const pwaHead = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#00b0ff">\n${headExtras}<link rel="icon" href="./icons/icon-192.png">\n<title>${appName.replace(/"/g, '&quot;')}</title>`;
-                source = source.replace('<meta charset="UTF-8">', '<meta charset="UTF-8">\n' + pwaHead);
+                if (/<meta[^>]*charset[^>]*>/i.test(source)) {
+                    source = source.replace(/(<meta[^>]*charset[^>]*>)/i, `$1\n${pwaHead}`);
+                } else if (/<head[^>]*>/i.test(source)) {
+                    source = source.replace(/(<head[^>]*>)/i, `$1\n<meta charset="UTF-8">\n${pwaHead}`);
+                } else {
+                    source = `<head>\n<meta charset="UTF-8">\n${pwaHead}\n</head>\n` + source;
+                }
                 const swRegisterScript = `<script>if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(err => console.warn('SW lỗi:', err)); }); }<\/script>`;
-                source = source.replace('</body>', swRegisterScript + '\n</body>');
+                if (/<\/body>/i.test(source)) {
+                    source = source.replace(/<\/body>/i, `${swRegisterScript}\n</body>`);
+                } else {
+                    source += `\n${swRegisterScript}\n`;
+                }
 
                 zip.file('index.html', source);
 
